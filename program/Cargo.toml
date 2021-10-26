@@ -1,0 +1,33 @@
+
+[package]
+name = "jabber"
+version = "0.0.1"
+authors = ["contact@bonfida.com"]
+edition = "2018"
+
+[features]
+no-entrypoint = []
+test-bpf = []
+
+[dependencies]
+num-derive = "0.3.3"
+solana-program = "1.7.10"
+num-traits = "0.2"
+thiserror = "1.0.24"
+borsh = "0.9.1"
+
+[dev-dependencies]
+solana-sdk = "1.7.10"
+solana-client = "1.7.10"
+rand = "0.8.3"
+solana-program-test = "1.7.10"
+tokio = {version="1.10.0", features = ["macros"]}
+futures = "0.3.15"
+futures-util = "0.3.15"
+rand_distr = "0.4.0"
+spl-associated-token-account = {version = "1.0.2", features = ["no-entrypoint"]}
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+
