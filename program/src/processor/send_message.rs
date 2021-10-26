@@ -54,9 +54,6 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
             JabberError::WrongSystemProgramAccount,
         )?;
         check_signer(accounts.sender)?;
-        if accounts.sender.key == accounts.receiver.key {
-            return Err(ProgramError::InvalidArgument);
-        }
         check_account_owner(
             accounts.thread,
             program_id,

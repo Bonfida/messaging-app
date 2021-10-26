@@ -4,7 +4,7 @@ use solana_program::{
     account_info::AccountInfo, clock::UnixTimestamp, program_error::ProgramError, pubkey::Pubkey,
 };
 
-pub const MAX_NAME_LENGTH: usize = 32;
+pub const MAX_NAME_LENGTH: usize = 100;
 pub const MAX_BIO_LENGTH: usize = 100;
 pub const MAX_MSG_LEN: usize = 1_000;
 
@@ -24,7 +24,7 @@ pub enum Tag {
 #[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
 pub struct Profile {
     pub tag: Tag,
-    pub name: String,
+    pub picture_hash: String,
     pub bio: String,
     pub lamports_per_message: u64,
     pub bump: u8,
@@ -45,10 +45,10 @@ impl Profile {
         Pubkey::create_program_address(seeds, program_id).unwrap()
     }
 
-    pub fn new(name: String, bio: String, lamports_per_message: u64, bump: u8) -> Self {
+    pub fn new(picture_hash: String, bio: String, lamports_per_message: u64, bump: u8) -> Self {
         Self {
             tag: Tag::Profile,
-            name,
+            picture_hash,
             bio,
             lamports_per_message,
             bump,

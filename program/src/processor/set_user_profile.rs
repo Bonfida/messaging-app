@@ -11,7 +11,7 @@ use solana_program::{
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
 pub struct Params {
-    pub name: String,
+    pub picture_hash: String,
     pub bio: String,
     pub lamports_per_message: u64,
 }
@@ -59,12 +59,12 @@ pub(crate) fn process(
     params: Params,
 ) -> ProgramResult {
     let Params {
-        name,
+        picture_hash,
         bio,
         lamports_per_message,
     } = params;
 
-    check_profile_params(&name, &bio)?;
+    check_profile_params(&picture_hash, &bio)?;
 
     let accounts = Accounts::parse(program_id, accounts)?;
 
@@ -72,7 +72,7 @@ pub(crate) fn process(
 
     profile.lamports_per_message = lamports_per_message;
     profile.bio = bio;
-    profile.name = name;
+    profile.picture_hash = picture_hash;
 
     profile.save(&mut accounts.profile.data.borrow_mut());
 
