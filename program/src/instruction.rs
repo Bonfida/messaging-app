@@ -1,4 +1,6 @@
 pub use crate::processor::{create_profile, create_thread, send_message, set_user_profile};
+use crate::utils::SOL_VAULT;
+use std::str::FromStr;
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -43,6 +45,7 @@ pub enum JabberInstruction {
     // | 3     	| ✅        	| ❌      	| Thread account         	|
     // | 4     	| ❌       	| ❌      	| Receiver profile        	|
     // | 5     	| ✅        	| ❌      	| Message account          	|
+    // | 6     	| ✅        	| ❌      	| SOL vault account       	|
     SendMessage(send_message::Params),
 }
 
@@ -128,6 +131,7 @@ pub fn send_message(
         AccountMeta::new(thread, false),
         AccountMeta::new_readonly(receiver_profile, false),
         AccountMeta::new(message, false),
+        AccountMeta::new(Pubkey::from_str(SOL_VAULT).unwrap(), false),
     ];
     Instruction {
         program_id: jabber_program_id,

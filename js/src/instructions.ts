@@ -11,6 +11,10 @@ export const JABBER_ID = new PublicKey(
   "FddkMfjFoLdBeTbETr5uZobEkykeW76Nk24hghPPchpw"
 );
 
+export const SOL_VAULT = new PublicKey(
+  "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi"
+);
+
 export class CreateProfile {
   tag: number;
   name: string;
@@ -272,6 +276,12 @@ export class SendMessage {
       // Account 6
       {
         pubkey: message,
+        isSigner: false,
+        isWritable: true,
+      },
+      // Account 7
+      {
+        pubkey: SOL_VAULT,
         isSigner: false,
         isWritable: true,
       },

@@ -7,6 +7,9 @@ use crate::error::JabberError;
 use crate::state::{MAX_BIO_LENGTH, MAX_NAME_LENGTH};
 use std::cmp::Ordering::Less;
 
+pub const SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi";
+pub const FEE: u64 = 1;
+
 // Safety verification functions
 pub fn check_account_key(
     account: &AccountInfo,
@@ -45,7 +48,7 @@ pub fn check_rent_exempt(account: &AccountInfo) -> ProgramResult {
     Ok(())
 }
 
-pub fn check_profile_params(name: &String, bio: &String) -> ProgramResult {
+pub fn check_profile_params(name: &str, bio: &str) -> ProgramResult {
     if bio.len() > MAX_BIO_LENGTH {
         msg!("Bio is too long - max is {}", MAX_BIO_LENGTH);
         return Err(ProgramError::InvalidArgument);
@@ -62,5 +65,5 @@ pub fn order_keys(key_1: &Pubkey, key_2: &Pubkey) -> (Pubkey, Pubkey) {
     if order == Less {
         return (*key_1, *key_2);
     }
-    return (*key_2, *key_1);
+    (*key_2, *key_1)
 }

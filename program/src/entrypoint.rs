@@ -55,6 +55,9 @@ impl PrintProgramError for JabberError {
             JabberError::WrongMessageAccount => {
                 msg!("Error: The message account is invalid")
             }
+            JabberError::WrongSolVaultAccount => {
+                msg!("Error: Wrong SOL vault account")
+            }
         }
     }
 }

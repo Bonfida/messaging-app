@@ -37,7 +37,7 @@ async fn test_jabber() {
         create_profile::Params {
             name: "Receiver".to_string(),
             bio: "I receive message".to_string(),
-            lamports_per_message: 1,
+            lamports_per_message: 1_000_000_000,
         },
     );
 
