@@ -37,7 +37,7 @@ impl Profile {
             &[Profile::SEED.as_bytes(), &user_key.to_bytes()],
             program_id,
         );
-        return (user_profile_key, bump);
+        (user_profile_key, bump)
     }
 
     pub fn create_from_keys(user_key: &Pubkey, program_id: &Pubkey, bump: u8) -> Pubkey {
@@ -105,7 +105,7 @@ impl Thread {
             ],
             program_id,
         );
-        return (thread_key, bump);
+        (thread_key, bump)
     }
 
     pub fn create_from_user_keys(
@@ -147,7 +147,7 @@ pub enum MessageType {
     Encrypted,
     Unencrypted,
     EncryptedImage,
-    UnencryptedImage
+    UnencryptedImage,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
@@ -193,7 +193,7 @@ impl Message {
             ],
             program_id,
         );
-        return (message_key, bump);
+        (message_key, bump)
     }
 
     pub fn create_from_keys(

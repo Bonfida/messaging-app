@@ -41,7 +41,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         let profile = Profile::from_account_info(accounts.profile)?;
 
         let expected_user_profile_key =
-            Profile::create_from_keys(accounts.profile_owner.key, &program_id, profile.bump);
+            Profile::create_from_keys(accounts.profile_owner.key, program_id, profile.bump);
 
         check_account_key(
             accounts.profile,
@@ -68,7 +68,7 @@ pub(crate) fn process(
 
     let accounts = Accounts::parse(program_id, accounts)?;
 
-    let mut profile = Profile::from_account_info(&accounts.profile)?;
+    let mut profile = Profile::from_account_info(accounts.profile)?;
 
     profile.lamports_per_message = lamports_per_message;
     profile.bio = bio;

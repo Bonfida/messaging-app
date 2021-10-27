@@ -22,6 +22,8 @@ pub enum JabberError {
     WrongSystemProgramAccount,
     #[error("The message account must be owned by the program")]
     WrongMessageAccount,
+    #[error("Wrong SOL vault account")]
+    WrongSolVaultAccount,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {

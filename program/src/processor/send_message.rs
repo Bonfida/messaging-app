@@ -1,6 +1,11 @@
+use std::str::FromStr;
+
 use crate::{
     state::MessageType,
-    utils::{check_account_key, check_account_owner, check_rent_exempt, check_signer, order_keys},
+    utils::{
+        check_account_key, check_account_owner, check_rent_exempt, check_signer, order_keys, FEE,
+        SOL_VAULT,
+    },
 };
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -32,6 +37,7 @@ struct Accounts<'a, 'b: 'a> {
     thread: &'a AccountInfo<'b>,
     receiver_profile: &'a AccountInfo<'b>,
     message: &'a AccountInfo<'b>,
+    sol_vault: &'a AccountInfo<'b>,
 }
 
 impl<'a, 'b: 'a> Accounts<'a, 'b> {
@@ -47,6 +53,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
             thread: next_account_info(accounts_iter)?,
             receiver_profile: next_account_info(accounts_iter)?,
             message: next_account_info(accounts_iter)?,
+            sol_vault: next_account_info(accounts_iter)?,
         };
         check_account_key(
             accounts.system_program,
@@ -61,6 +68,11 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         )?;
 
         check_rent_exempt(accounts.thread)?;
+        check_account_key(
+            accounts.sol_vault,
+            &Pubkey::from_str(SOL_VAULT).unwrap(),
+            JabberError::WrongSolVaultAccount,
+        )?;
 
         Ok(accounts)
     }
@@ -75,7 +87,7 @@ pub(crate) fn process(
 
     let Params { kind, message } = params;
 
-    let mut thread = Thread::from_account_info(&accounts.thread)?;
+    let mut thread = Thread::from_account_info(accounts.thread)?;
     let thread_key = Thread::create_from_user_keys(
         accounts.sender.key,
         accounts.receiver.key,
@@ -144,17 +156,30 @@ pub(crate) fn process(
             JabberError::WrongProfileOwner,
         )?;
         let profile = Profile::from_account_info(accounts.receiver_profile)?;
-        let transfer = transfer(
-            accounts.sender.key,
-            accounts.receiver.key,
-            profile.lamports_per_message,
-        );
+
+        let transfer_fee = (profile.lamports_per_message * FEE) / 100;
+        let transfer_amount = profile.lamports_per_message - transfer_fee;
+
+        let transfer_amount_instruction =
+            transfer(accounts.sender.key, accounts.receiver.key, transfer_amount);
+        let transfer_fee_instruction =
+            transfer(accounts.sender.key, accounts.sol_vault.key, transfer_fee);
+
         invoke(
-            &transfer,
+            &transfer_amount_instruction,
             &[
                 accounts.system_program.clone(),
                 accounts.sender.clone(),
                 accounts.receiver.clone(),
+            ],
+        )?;
+
+        invoke(
+            &transfer_fee_instruction,
+            &[
+                accounts.system_program.clone(),
+                accounts.sender.clone(),
+                accounts.sol_vault.clone(),
             ],
         )?;
     }
