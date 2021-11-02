@@ -6,9 +6,14 @@ use solana_program::{
 
 use crate::instruction::JabberInstruction;
 
+pub mod add_group_admin;
+pub mod create_group_thread;
 pub mod create_profile;
 pub mod create_thread;
+pub mod edit_group_thread;
+pub mod remove_group_admin;
 pub mod send_message;
+pub mod send_message_group;
 pub mod set_user_profile;
 
 pub struct Processor {}
@@ -40,6 +45,26 @@ impl Processor {
             JabberInstruction::SendMessage(params) => {
                 msg!("Instruction: Send message");
                 send_message::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::CreateGroupThread(params) => {
+                msg!("Instruction: Create group thread");
+                create_group_thread::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::EditGroupThread(params) => {
+                msg!("Instruction: Edit group thread");
+                edit_group_thread::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::SendMessageGroup(params) => {
+                msg!("Instruction: send message to group");
+                send_message_group::process(program_id, accounts, params)?
+            }
+            JabberInstruction::AddAdminToGroup(params) => {
+                msg!("Instruction: Add admin to group");
+                add_group_admin::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::RemoveAdminGroup(params) => {
+                msg!("Instruction: Remove admin from group");
+                remove_group_admin::process(program_id, accounts, params)?;
             }
         }
         Ok(())

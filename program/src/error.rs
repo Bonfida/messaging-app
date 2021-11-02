@@ -24,6 +24,18 @@ pub enum JabberError {
     WrongMessageAccount,
     #[error("Wrong SOL vault account")]
     WrongSolVaultAccount,
+    #[error("Maximum number of admins reached")]
+    MaxAdminsReached,
+    #[error("Invalid admin index")]
+    InvalidAdminIndex,
+    #[error("Wrong group owner")]
+    WrongGroupOwner,
+    #[error("Group thread must be owned by the program")]
+    WrongGroupThreadOwner,
+    #[error("Non supported message type")]
+    NonSupportedMessageType,
+    #[error("Wrong destination wallet")]
+    WrongDestinationWallet,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {

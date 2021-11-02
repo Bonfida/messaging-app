@@ -294,3 +294,252 @@ export class SendMessage {
     });
   }
 }
+
+export class CreateGroupThread {
+  tag: number;
+  groupName: string;
+  destinationWallet: Uint8Array;
+  lamportsPerMessage: BN;
+  admins: Uint8Array[];
+  owner: Uint8Array;
+  mediaEnabled: boolean;
+
+  static schema: Schema = new Map([
+    [
+      CreateGroupThread,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["groupName", "string"],
+          ["destinationWallet", [32]],
+          ["lamportsPerMessage", "u64"],
+          ["admins", [[32]]],
+          ["owner", [32]],
+          ["mediaEnabled", "u8"],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: {
+    groupName: string;
+    destinationWallet: Uint8Array;
+    lamportsPerMessage: BN;
+    admins: Uint8Array[];
+    owner: Uint8Array;
+    mediaEnabled: boolean;
+  }) {
+    this.tag = 4;
+    this.groupName = obj.groupName;
+    this.destinationWallet = obj.destinationWallet;
+    this.lamportsPerMessage = obj.lamportsPerMessage;
+    this.admins = obj.admins;
+    this.owner = obj.owner;
+    this.mediaEnabled = obj.mediaEnabled;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(CreateGroupThread.schema, this);
+  }
+
+  getInstruction(groupThread: PublicKey, feePayer: PublicKey) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      // Account 1
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+      // Account 2
+      {
+        pubkey: groupThread,
+        isSigner: false,
+        isWritable: true,
+      },
+      // Account 3
+      {
+        pubkey: feePayer,
+        isSigner: true,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId: JABBER_ID,
+      data,
+    });
+  }
+}
+
+export class EditGroupThread {
+  tag: number;
+  destinationWallet: Uint8Array;
+  lamportsPerMessage: BN;
+  owner: Uint8Array;
+  mediaEnabled: boolean;
+
+  static schema: Schema = new Map([
+    [
+      EditGroupThread,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["destinationWallet", [32]],
+          ["lamportsPerMessage", "u64"],
+          ["owner", [32]],
+          ["mediaEnabled", "u8"],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: {
+    destinationWallet: Uint8Array;
+    lamportsPerMessage: BN;
+    owner: Uint8Array;
+    mediaEnabled: boolean;
+  }) {
+    this.tag = 5;
+    this.destinationWallet = obj.destinationWallet;
+    this.lamportsPerMessage = obj.lamportsPerMessage;
+    this.owner = obj.owner;
+    this.mediaEnabled = obj.mediaEnabled;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(EditGroupThread.schema, this);
+  }
+
+  getInstruction(groupOwner: PublicKey, groupThread: PublicKey) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      // Account 1
+      {
+        pubkey: groupOwner,
+        isSigner: true,
+        isWritable: true,
+      },
+      // Account 2
+      {
+        pubkey: groupThread,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId: JABBER_ID,
+      data,
+    });
+  }
+}
+
+export class AddGroupAdmin {
+  tag: number;
+  adminAddress: Uint8Array;
+
+  static schema: Schema = new Map([
+    [
+      AddGroupAdmin,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["adminAddress", [32]],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { adminAddress: Uint8Array }) {
+    this.tag = 7;
+    this.adminAddress = obj.adminAddress;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(AddGroupAdmin.schema, this);
+  }
+
+  getInstruction(groupThread: PublicKey, groupOwner: PublicKey) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      // Account 1
+      {
+        pubkey: groupThread,
+        isSigner: false,
+        isWritable: true,
+      },
+      // Account 2
+      {
+        pubkey: groupOwner,
+        isSigner: true,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId: JABBER_ID,
+      data,
+    });
+  }
+}
+
+export class RemoveGroupAdmin {
+  tag: number;
+  adminAddress: Uint8Array;
+  adminIndex: number;
+
+  static schema: Schema = new Map([
+    [
+      RemoveGroupAdmin,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["adminAddress", [32]],
+          ["adminIndex", "usize"],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { adminAddress: Uint8Array; adminIndex: number }) {
+    this.tag = 7;
+    this.adminAddress = obj.adminAddress;
+    this.adminIndex = obj.adminIndex;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(RemoveGroupAdmin.schema, this);
+  }
+
+  getInstruction(groupThread: PublicKey, groupOwner: PublicKey) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      // Account 1
+      {
+        pubkey: groupThread,
+        isSigner: false,
+        isWritable: true,
+      },
+      // Account 2
+      {
+        pubkey: groupOwner,
+        isSigner: true,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId: JABBER_ID,
+      data,
+    });
+  }
+}
