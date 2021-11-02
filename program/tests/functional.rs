@@ -1,6 +1,10 @@
 use jabber::entrypoint::process_instruction;
-use jabber::instruction::{create_profile, create_thread, send_message};
-use jabber::state::MessageType;
+use jabber::instruction::{
+    add_admin_to_group, add_group_admin, create_group_thread, create_profile, create_thread,
+    edit_group_thread, remove_admin_from_group, remove_group_admin, send_message,
+    send_message_group,
+};
+use jabber::state::{GroupThread, MessageType};
 use jabber::state::{Message, Profile, Thread};
 use solana_program::pubkey::Pubkey;
 use solana_program_test::{processor, ProgramTest};
@@ -93,6 +97,119 @@ async fn test_jabber() {
         },
     );
     sign_send_instructions(&mut prg_test_ctx, vec![send_message_instruction], vec![])
+        .await
+        .unwrap();
+
+    ////
+    // Test groups instruction
+    ////
+
+    // Create group
+
+    let (group_thread, _) = GroupThread::find_from_destination_wallet_and_name(
+        "group_name".to_string(),
+        prg_test_ctx.payer.pubkey(),
+        &jabber_program_id,
+    );
+
+    let create_group_thread_instruction = create_group_thread(
+        jabber_program_id,
+        group_thread,
+        prg_test_ctx.payer.pubkey(),
+        create_group_thread::Params {
+            group_name: "group_name".to_string(),
+            destination_wallet: prg_test_ctx.payer.pubkey(),
+            lamports_per_message: 1_000_000,
+            admins: vec![receiver_account.pubkey()],
+            owner: prg_test_ctx.payer.pubkey(),
+            media_enabled: true,
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![create_group_thread_instruction],
+        vec![],
+    )
+    .await
+    .unwrap();
+
+    // Edit group
+
+    let edit_group_thread_instruction = edit_group_thread(
+        jabber_program_id,
+        prg_test_ctx.payer.pubkey(),
+        group_thread,
+        edit_group_thread::Params {
+            destination_wallet: receiver_account.pubkey(),
+            lamports_per_message: 2 * 1_000_000,
+            owner: prg_test_ctx.payer.pubkey(),
+            media_enabled: false,
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![edit_group_thread_instruction],
+        vec![],
+    )
+    .await
+    .unwrap();
+
+    // Send message
+
+    let (group_message, _) =
+        Message::find_from_keys(0, &group_thread, &group_thread, &jabber_program_id);
+
+    let send_group_message_instruction = send_message_group(
+        jabber_program_id,
+        prg_test_ctx.payer.pubkey(),
+        group_thread,
+        receiver_account.pubkey(),
+        group_message,
+        send_message_group::Params {
+            kind: MessageType::Unencrypted,
+            message: "Coucou les gars".to_string().as_bytes().to_vec(),
+            group_name: "group_name".to_string(),
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![send_group_message_instruction],
+        vec![],
+    )
+    .await
+    .unwrap();
+
+    // Add admin to group
+
+    let add_admin_instruction = add_admin_to_group(
+        jabber_program_id,
+        group_thread,
+        prg_test_ctx.payer.pubkey(),
+        add_group_admin::Params {
+            admin_address: receiver_account.pubkey(),
+        },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![add_admin_instruction], vec![])
+        .await
+        .unwrap();
+
+    // Remove admin from group
+
+    let remove_admin_instruction = remove_admin_from_group(
+        jabber_program_id,
+        group_thread,
+        prg_test_ctx.payer.pubkey(),
+        remove_group_admin::Params {
+            admin_address: receiver_account.pubkey(),
+            admin_index: 1,
+        },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![remove_admin_instruction], vec![])
         .await
         .unwrap();
 }

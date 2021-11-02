@@ -10,6 +10,7 @@ export enum Tag {
   Thread = 2,
   Message = 3,
   Jabber = 4,
+  GroupThread = 5,
 }
 
 export enum MessageType {
@@ -254,5 +255,104 @@ export class Message {
         ? { message: this.deserialize(info?.data), address: messageAccounts[i] }
         : undefined
     );
+  }
+}
+
+export class GroupThread {
+  tag: Tag;
+  groupName: string;
+  msgCount: number;
+  destinationWallet: PublicKey;
+  lamportsPerMessage: BN;
+  bump: number;
+  admins: PublicKey[];
+  owner: PublicKey;
+  mediaEnabled: boolean;
+
+  static schema: Schema = new Map([
+    [
+      GroupThread,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["groupName", "string"],
+          ["msgCount", "u32"],
+          ["destinationWallet", [32]],
+          ["lamportsPerMessage", "u64"],
+          ["bump", "u8"],
+          ["admins", [[32]]],
+          ["owner", [32]],
+          ["mediaEnabled", "u8"],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: {
+    groupName: string;
+    msgCount: number;
+    destinationWallet: Uint8Array;
+    lamportsPerMessage: BN;
+    bump: number;
+    admins: Uint8Array[];
+    owner: Uint8Array;
+    mediaEnabled: number;
+  }) {
+    this.tag = Tag.GroupThread;
+    this.groupName = obj.groupName;
+    this.msgCount = obj.msgCount;
+    this.destinationWallet = new PublicKey(obj.destinationWallet);
+    this.lamportsPerMessage = obj.lamportsPerMessage;
+    this.bump = obj.bump;
+    this.admins = obj.admins.map((e) => new PublicKey(e));
+    this.owner = new PublicKey(obj.owner);
+    this.mediaEnabled = !!obj.mediaEnabled;
+  }
+
+  static deserialize(data: Buffer) {
+    return deserialize(this.schema, GroupThread, data);
+  }
+
+  static generateSeeds(groupName: string, owner: PublicKey) {
+    return [
+      Buffer.from("group_thread"),
+      Buffer.from(groupName),
+      owner.toBuffer(),
+    ];
+  }
+
+  static async getKey(groupName: string, owner: PublicKey) {
+    const [groupThread] = await PublicKey.findProgramAddress(
+      GroupThread.generateSeeds(groupName, owner),
+      JABBER_ID
+    );
+    return groupThread;
+  }
+
+  static async retrieve(
+    connection: Connection,
+    groupName: string,
+    owner: PublicKey
+  ) {
+    const groupThreadKey = await GroupThread.getKey(groupName, owner);
+
+    const accountInfo = await connection.getAccountInfo(groupThreadKey);
+
+    if (!accountInfo?.data) {
+      throw new Error("Group thread not found");
+    }
+
+    return this.deserialize(accountInfo.data);
+  }
+
+  static async retrieveFromKey(connection: Connection, key: PublicKey) {
+    const accountInfo = await connection.getAccountInfo(key);
+
+    if (!accountInfo?.data) {
+      throw new Error("Group thread not found");
+    }
+
+    return this.deserialize(accountInfo.data);
   }
 }

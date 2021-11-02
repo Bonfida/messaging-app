@@ -4,10 +4,14 @@ import {
   CreateThread,
   SetUserProfile,
   SendMessage,
+  CreateGroupThread,
+  EditGroupThread,
+  AddGroupAdmin,
+  RemoveGroupAdmin,
 } from "./instructions";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { Profile, Thread, MessageType, Message } from "./state";
+import { Profile, Thread, MessageType, Message, GroupThread } from "./state";
 
 /**
  *
@@ -168,4 +172,107 @@ export const retrieveUserThread = async (
     filters: filters_2,
   });
   return result_1.concat(result_2);
+};
+
+/**
+ *
+ * @param groupName Name of the group
+ * @param destinationWallet Wallet that will receive the fees
+ * @param lamportsPerMessage SOL fee per message
+ * @param admins Admins of the group
+ * @param owner Owner of the group (only address that will be able to edit the group)
+ * @param mediaEnabled Is it possible to send media (images, videos and audios)?
+ * @param feePayer Fee payer of the instruction
+ * @returns
+ */
+export const createGroupThread = async (
+  groupName: string,
+  destinationWallet: PublicKey,
+  lamportsPerMessage: BN,
+  admins: PublicKey[],
+  owner: PublicKey,
+  mediaEnabled: boolean,
+  feePayer: PublicKey
+) => {
+  const groupThread = await GroupThread.getKey(groupName, owner);
+
+  const instruction = new CreateGroupThread({
+    groupName,
+    destinationWallet: destinationWallet.toBuffer(),
+    lamportsPerMessage,
+    admins: admins.map((e) => e.toBuffer()),
+    owner: owner.toBuffer(),
+    mediaEnabled,
+  }).getInstruction(groupThread, feePayer);
+
+  return instruction;
+};
+
+/**
+ *
+ * @param groupName Name of the group
+ * @param owner Owner of the group
+ * @param destinationWallet allet that will receive the fees
+ * @param lamportsPerMessage SOL fee per message
+ * @param mediaEnabled Is it possible to send media (images, videos and audios)?
+ * @returns
+ */
+export const editGroupThread = async (
+  groupName: string,
+  owner: PublicKey,
+  destinationWallet: PublicKey,
+  lamportsPerMessage: BN,
+  mediaEnabled: boolean
+) => {
+  const groupThread = await GroupThread.getKey(groupName, owner);
+
+  const instruction = new EditGroupThread({
+    destinationWallet: destinationWallet.toBuffer(),
+    lamportsPerMessage,
+    owner: owner.toBuffer(),
+    mediaEnabled: mediaEnabled,
+  }).getInstruction(owner, groupThread);
+
+  return instruction;
+};
+
+/**
+ *
+ * @param groupKey Address of the group thread
+ * @param adminToAdd Address of the admin to add
+ * @param groupOwner Owner of the group
+ * @returns
+ */
+export const addAdminToGroup = async (
+  groupKey: PublicKey,
+  adminToAdd: PublicKey,
+  groupOwner: PublicKey
+) => {
+  const instruction = new AddGroupAdmin({
+    adminAddress: adminToAdd.toBuffer(),
+  }).getInstruction(groupKey, groupOwner);
+
+  return instruction;
+};
+
+/**
+ *
+ * @param groupKey Address of the group thread
+ * @param adminToRemove Address of the admin to remove
+ * @param adminIndex Index of the admin in the Vec<Pubkey> of admins (cf GroupThread state)
+ * @param groupOwner Owner of the group
+ * @returns
+ */
+export const removeAdminFromGroup = async (
+  groupKey: PublicKey,
+  adminToRemove: PublicKey,
+  adminIndex: number,
+  groupOwner: PublicKey
+) => {
+  const instruction = new RemoveGroupAdmin({
+    adminAddress: adminToRemove.toBuffer(),
+    adminIndex: adminIndex,
+  }).getInstruction(groupKey, groupOwner);
+
+  return instruction;
 };

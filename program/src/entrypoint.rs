@@ -58,6 +58,24 @@ impl PrintProgramError for JabberError {
             JabberError::WrongSolVaultAccount => {
                 msg!("Error: Wrong SOL vault account")
             }
+            JabberError::MaxAdminsReached => {
+                msg!("Error: Maximum number of admins reached")
+            }
+            JabberError::InvalidAdminIndex => {
+                msg!("Error: Invalid admin index")
+            }
+            JabberError::WrongGroupOwner => {
+                msg!("Error: Wrong group owner")
+            }
+            JabberError::WrongGroupThreadOwner => {
+                msg!("Error: Group thread must be owned by the program")
+            }
+            JabberError::NonSupportedMessageType => {
+                msg!("Error: Non supported message type")
+            }
+            JabberError::WrongDestinationWallet => {
+                msg!("Error: Wrong destination wallet")
+            }
         }
     }
 }

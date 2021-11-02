@@ -1,7 +1,8 @@
 use crate::{error::JabberError, utils::order_keys};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
-    account_info::AccountInfo, clock::UnixTimestamp, program_error::ProgramError, pubkey::Pubkey,
+    account_info::AccountInfo, clock::UnixTimestamp, entrypoint::ProgramResult,
+    program_error::ProgramError, pubkey::Pubkey,
 };
 
 pub const MAX_NAME_LENGTH: usize = 100;
@@ -12,6 +13,12 @@ pub const MAX_PROFILE_LEN: usize = 1 + MAX_NAME_LENGTH + MAX_BIO_LENGTH + 8 + 1;
 
 pub const MAX_THREAD_LEN: usize = 1 + 4 + 32 + 32 + 1;
 
+pub const MAX_GROUP_NAME_LEN: usize = 100;
+pub const MAX_ADMIN_LEN: usize = 10;
+
+pub const MAX_GROUP_THREAD_LEN: usize =
+    1 + MAX_GROUP_NAME_LEN + 4 + 32 + 8 + 1 + 4 + MAX_ADMIN_LEN * 32 + 32;
+
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
 pub enum Tag {
     Uninitialized,
@@ -19,6 +26,7 @@ pub enum Tag {
     Thread,
     Message,
     Jabber,
+    GroupThread,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
@@ -226,5 +234,116 @@ impl Message {
         }
         let result = Message::deserialize(&mut data)?;
         Ok(result)
+    }
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
+pub struct GroupThread {
+    pub tag: Tag,
+    pub group_name: String,
+    pub msg_count: u32,
+    pub destination_wallet: Pubkey,
+    pub lamports_per_message: u64,
+    pub bump: u8,
+    pub admins: Vec<Pubkey>,
+    pub owner: Pubkey,
+    pub media_enabled: bool,
+}
+
+impl GroupThread {
+    pub const SEED: &'static str = "group_thread";
+
+    pub fn new(
+        group_name: String,
+        destination_wallet: Pubkey,
+        lamports_per_message: u64,
+        bump: u8,
+        admins: Vec<Pubkey>,
+        owner: Pubkey,
+        media_enabled: bool,
+    ) -> Self {
+        Self {
+            tag: Tag::GroupThread,
+            group_name,
+            msg_count: 0,
+            destination_wallet,
+            lamports_per_message,
+            bump,
+            admins,
+            owner,
+            media_enabled,
+        }
+    }
+
+    pub fn create_from_destination_wallet_and_name(
+        group_name: String,
+        owner: Pubkey,
+        program_id: &Pubkey,
+        bump: u8,
+    ) -> Pubkey {
+        let seeds = &[
+            GroupThread::SEED.as_bytes(),
+            group_name.as_bytes(),
+            &owner.to_bytes(),
+            &[bump],
+        ];
+        Pubkey::create_program_address(seeds, program_id).unwrap()
+    }
+
+    pub fn find_from_destination_wallet_and_name(
+        group_name: String,
+        owner: Pubkey,
+        program_id: &Pubkey,
+    ) -> (Pubkey, u8) {
+        let seeds = &[
+            GroupThread::SEED.as_bytes(),
+            group_name.as_bytes(),
+            &owner.to_bytes(),
+        ];
+        let (ama_thread_key, bump) = Pubkey::find_program_address(seeds, program_id);
+        (ama_thread_key, bump)
+    }
+
+    pub fn save(&self, mut dst: &mut [u8]) {
+        self.serialize(&mut dst).unwrap()
+    }
+
+    pub fn increment_msg_count(&mut self) {
+        self.msg_count += 1;
+    }
+
+    pub fn from_account_info(a: &AccountInfo) -> Result<GroupThread, ProgramError> {
+        let mut data = &a.data.borrow() as &[u8];
+        if data[0] != Tag::GroupThread as u8 && data[0] != Tag::Uninitialized as u8 {
+            return Err(JabberError::DataTypeMismatch.into());
+        }
+        let result = GroupThread::deserialize(&mut data)?;
+        Ok(result)
+    }
+
+    pub fn is_fee_exempt(&self, sender: Pubkey, admin_index: Option<usize>) -> bool {
+        if self.destination_wallet == sender {
+            return true;
+        }
+        if let Some(idx) = admin_index {
+            return self.admins[idx] == sender;
+        }
+        false
+    }
+
+    pub fn add_admin(&mut self, admin_address: Pubkey) -> ProgramResult {
+        if self.admins.len() > MAX_ADMIN_LEN {
+            return Err(JabberError::MaxAdminsReached.into());
+        }
+        self.admins.push(admin_address);
+        Ok(())
+    }
+
+    pub fn remove_admin(&mut self, admin_address: Pubkey, admin_index: usize) -> ProgramResult {
+        let deleted = self.admins.remove(admin_index);
+        if admin_address != deleted {
+            return Err(JabberError::InvalidAdminIndex.into());
+        }
+        Ok(())
     }
 }
