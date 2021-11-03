@@ -1,6 +1,6 @@
 pub use crate::processor::{
-    add_group_admin, create_group_thread, create_profile, create_thread, edit_group_thread,
-    remove_group_admin, send_message, send_message_group, set_user_profile,
+    add_group_admin, create_group_index, create_group_thread, create_profile, create_thread,
+    edit_group_thread, remove_group_admin, send_message, send_message_group, set_user_profile,
 };
 use crate::utils::SOL_VAULT;
 use std::{str::FromStr, vec};
@@ -95,6 +95,15 @@ pub enum JabberInstruction {
     // | 0     | ✅        | ❌      | Group thread account |
     // | 1     | ✅        | ✅      | Group owner          |
     RemoveAdminGroup(remove_group_admin::Params),
+    //
+    // Create thread index account
+    //
+    // | Index | Writable | Signer | Description        |
+    // |-------|----------|--------|--------------------|
+    // | 0     | ❌        | ❌      | System program     |
+    // | 1     | ✅        | ❌      | Group thread index |
+    // | 2     | ✅        | ✅      | Fee payer          |
+    CreateGroupIndex(create_group_index::Params),
 }
 
 pub fn create_profile(
@@ -286,6 +295,27 @@ pub fn remove_admin_from_group(
     let accounts = vec![
         AccountMeta::new(group_thread, false),
         AccountMeta::new(group_owner, true),
+    ];
+
+    Instruction {
+        program_id: jabber_program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn create_group_index(
+    jabber_program_id: Pubkey,
+    group_thread_index: Pubkey,
+    fee_payer: Pubkey,
+    params: create_group_index::Params,
+) -> Instruction {
+    let instruction_data = JabberInstruction::CreateGroupIndex(params);
+    let data = instruction_data.try_to_vec().unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(system_program::ID, false),
+        AccountMeta::new(group_thread_index, false),
+        AccountMeta::new(fee_payer, true),
     ];
 
     Instruction {

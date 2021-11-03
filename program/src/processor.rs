@@ -7,6 +7,7 @@ use solana_program::{
 use crate::instruction::JabberInstruction;
 
 pub mod add_group_admin;
+pub mod create_group_index;
 pub mod create_group_thread;
 pub mod create_profile;
 pub mod create_thread;
@@ -65,6 +66,10 @@ impl Processor {
             JabberInstruction::RemoveAdminGroup(params) => {
                 msg!("Instruction: Remove admin from group");
                 remove_group_admin::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::CreateGroupIndex(params) => {
+                msg!("Instruction: Create group thread index");
+                create_group_index::process(program_id, accounts, params)?;
             }
         }
         Ok(())

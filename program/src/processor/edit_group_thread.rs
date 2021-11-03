@@ -1,4 +1,4 @@
-use crate::utils::{check_account_key, check_account_owner, check_signer};
+use crate::utils::{check_account_key, check_account_owner, check_hash_len, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -16,6 +16,8 @@ pub struct Params {
     pub lamports_per_message: u64,
     pub owner: Pubkey,
     pub media_enabled: bool,
+    pub group_pic_hash: Option<String>,
+    pub admin_only: bool,
 }
 
 struct Accounts<'a, 'b: 'a> {
@@ -82,7 +84,11 @@ pub(crate) fn process(
         lamports_per_message,
         owner,
         media_enabled,
+        group_pic_hash,
+        admin_only,
     } = params;
+
+    check_hash_len(&group_pic_hash)?;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
 
@@ -90,6 +96,8 @@ pub(crate) fn process(
     group_thread.destination_wallet = destination_wallet;
     group_thread.owner = owner;
     group_thread.media_enabled = media_enabled;
+    group_thread.group_pic_hash = group_pic_hash;
+    group_thread.admin_only = admin_only;
 
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
 

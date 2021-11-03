@@ -1,10 +1,10 @@
 use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
-    add_admin_to_group, add_group_admin, create_group_thread, create_profile, create_thread,
-    edit_group_thread, remove_admin_from_group, remove_group_admin, send_message,
+    add_admin_to_group, add_group_admin, create_group_index, create_group_thread, create_profile,
+    create_thread, edit_group_thread, remove_admin_from_group, remove_group_admin, send_message,
     send_message_group,
 };
-use jabber::state::{GroupThread, MessageType};
+use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
 use jabber::state::{Message, Profile, Thread};
 use solana_program::pubkey::Pubkey;
 use solana_program_test::{processor, ProgramTest};
@@ -123,6 +123,7 @@ async fn test_jabber() {
             admins: vec![receiver_account.pubkey()],
             owner: prg_test_ctx.payer.pubkey(),
             media_enabled: true,
+            admin_only: false,
         },
     );
 
@@ -145,6 +146,8 @@ async fn test_jabber() {
             lamports_per_message: 2 * 1_000_000,
             owner: prg_test_ctx.payer.pubkey(),
             media_enabled: false,
+            admin_only: false,
+            group_pic_hash: Some("".to_string()),
         },
     );
 
@@ -171,6 +174,7 @@ async fn test_jabber() {
             kind: MessageType::Unencrypted,
             message: "Coucou les gars".to_string().as_bytes().to_vec(),
             group_name: "group_name".to_string(),
+            admin_index: None,
         },
     );
 
@@ -212,4 +216,58 @@ async fn test_jabber() {
     sign_send_instructions(&mut prg_test_ctx, vec![remove_admin_instruction], vec![])
         .await
         .unwrap();
+
+    // Create group index
+
+    let (group_index, _) = GroupThreadIndex::find_address(
+        "group name".to_string(),
+        group_thread,
+        prg_test_ctx.payer.pubkey(),
+        &jabber_program_id,
+    );
+
+    let create_group_index_instruction = create_group_index(
+        jabber_program_id,
+        group_index,
+        prg_test_ctx.payer.pubkey(),
+        create_group_index::Params {
+            group_name: "group name".to_string(),
+            group_thread_key: group_thread,
+            owner: prg_test_ctx.payer.pubkey(),
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![create_group_index_instruction],
+        vec![],
+    )
+    .await
+    .unwrap();
+
+    let (group_index_2, _) = GroupThreadIndex::find_address(
+        "group name".to_string(),
+        group_thread,
+        receiver_account.pubkey(),
+        &jabber_program_id,
+    );
+
+    let create_group_index_instruction_2 = create_group_index(
+        jabber_program_id,
+        group_index_2,
+        prg_test_ctx.payer.pubkey(),
+        create_group_index::Params {
+            group_name: "group name".to_string(),
+            group_thread_key: group_thread,
+            owner: receiver_account.pubkey(),
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![create_group_index_instruction_2],
+        vec![],
+    )
+    .await
+    .unwrap();
 }

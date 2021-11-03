@@ -36,6 +36,8 @@ pub enum JabberError {
     NonSupportedMessageType,
     #[error("Wrong destination wallet")]
     WrongDestinationWallet,
+    #[error("Invalid hash length")]
+    InvalidHashLength,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {
