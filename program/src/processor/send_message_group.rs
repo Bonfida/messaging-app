@@ -29,6 +29,7 @@ pub struct Params {
     pub kind: MessageType,
     pub message: Vec<u8>,
     pub group_name: String,
+    pub admin_index: Option<usize>,
 }
 
 struct Accounts<'a, 'b: 'a> {
@@ -87,6 +88,7 @@ pub(crate) fn process(
         kind,
         message,
         group_name,
+        admin_index,
     } = params;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
@@ -156,7 +158,8 @@ pub(crate) fn process(
     message.save(&mut accounts.message.data.borrow_mut());
     group_thread.increment_msg_count();
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
-    let is_fee_exempt = GroupThread::is_fee_exempt(&group_thread, *accounts.sender.key, None);
+    let is_fee_exempt =
+        GroupThread::is_fee_exempt(&group_thread, *accounts.sender.key, admin_index);
 
     if !is_fee_exempt && group_thread.lamports_per_message > 0 {
         let transfer_fee = (group_thread.lamports_per_message * FEE) / 100;
