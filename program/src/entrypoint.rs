@@ -76,6 +76,9 @@ impl PrintProgramError for JabberError {
             JabberError::WrongDestinationWallet => {
                 msg!("Error: Wrong destination wallet")
             }
+            JabberError::InvalidHashLength => {
+                msg!("Error: Invalid hash length")
+            }
         }
     }
 }

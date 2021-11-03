@@ -5,7 +5,8 @@ use solana_program::{
 
 use crate::error::JabberError;
 use crate::state::{
-    GroupThread, MessageType, MAX_ADMIN_LEN, MAX_BIO_LENGTH, MAX_GROUP_NAME_LEN, MAX_NAME_LENGTH,
+    GroupThread, MessageType, MAX_ADMIN_LEN, MAX_BIO_LENGTH, MAX_GROUP_NAME_LEN, MAX_HASH_LEN,
+    MAX_NAME_LENGTH,
 };
 use std::cmp::Ordering::Less;
 
@@ -92,4 +93,16 @@ pub fn check_group_message_type(
         (false, MessageType::UnencryptedImage) => Err(JabberError::NonSupportedMessageType.into()),
         _ => Ok(()),
     }
+}
+
+pub fn check_hash_len(hash: &Option<String>) -> ProgramResult {
+    let too_long = match hash {
+        Some(hash) => hash.len() > MAX_HASH_LEN,
+        None => false,
+    };
+
+    if too_long {
+        return Err(JabberError::InvalidHashLength.into());
+    }
+    Ok(())
 }

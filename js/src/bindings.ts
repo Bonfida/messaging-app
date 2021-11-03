@@ -11,7 +11,15 @@ import {
 } from "./instructions";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { Profile, Thread, MessageType, Message, GroupThread } from "./state";
+import {
+  Profile,
+  Thread,
+  MessageType,
+  Message,
+  GroupThread,
+  GroupThreadIndex,
+} from "./state";
+import { CreateGroupIndex } from "src";
 
 /**
  *
@@ -243,7 +251,7 @@ export const editGroupThread = async (
  * @param groupOwner Owner of the group
  * @returns
  */
-export const addAdminToGroup = async (
+export const addAdminToGroup = (
   groupKey: PublicKey,
   adminToAdd: PublicKey,
   groupOwner: PublicKey
@@ -263,7 +271,7 @@ export const addAdminToGroup = async (
  * @param groupOwner Owner of the group
  * @returns
  */
-export const removeAdminFromGroup = async (
+export const removeAdminFromGroup = (
   groupKey: PublicKey,
   adminToRemove: PublicKey,
   adminIndex: number,
@@ -273,6 +281,25 @@ export const removeAdminFromGroup = async (
     adminAddress: adminToRemove.toBuffer(),
     adminIndex: adminIndex,
   }).getInstruction(groupKey, groupOwner);
+
+  return instruction;
+};
+
+export const createGroupIndex = async (
+  groupName: string,
+  owner: PublicKey,
+  groupThread: PublicKey
+) => {
+  const groupIndex = await GroupThreadIndex.getKey(
+    groupName,
+    owner,
+    groupThread
+  );
+  const instruction = new CreateGroupIndex({
+    groupName,
+    groupThreadKey: groupThread.toBuffer(),
+    owner: owner.toBuffer(),
+  }).getInstruction(groupIndex, owner);
 
   return instruction;
 };

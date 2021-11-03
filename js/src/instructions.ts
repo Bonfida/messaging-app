@@ -543,3 +543,70 @@ export class RemoveGroupAdmin {
     });
   }
 }
+
+export class CreateGroupIndex {
+  tag: number;
+  groupName: string;
+  groupThreadKey: Uint8Array;
+  owner: Uint8Array;
+
+  static schema: Schema = new Map([
+    [
+      CreateGroupIndex,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["groupName", "string"],
+          ["groupThreadKey", [32]],
+          ["owner", [32]],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: {
+    groupName: string;
+    groupThreadKey: Uint8Array;
+    owner: Uint8Array;
+  }) {
+    this.tag = 8;
+    this.groupName = obj.groupName;
+    this.groupThreadKey = obj.groupThreadKey;
+    this.owner = obj.owner;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(CreateGroupIndex.schema, this);
+  }
+
+  getInstruction(groupIndex: PublicKey, feePayer: PublicKey) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      // Account 1
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+      // Account 2
+      {
+        pubkey: groupIndex,
+        isSigner: false,
+        isWritable: true,
+      },
+      // Account 3
+      {
+        pubkey: feePayer,
+        isSigner: true,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId: JABBER_ID,
+      data,
+    });
+  }
+}

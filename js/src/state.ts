@@ -11,6 +11,7 @@ export enum Tag {
   Message = 3,
   Jabber = 4,
   GroupThread = 5,
+  GroupThreadIndex = 6,
 }
 
 export enum MessageType {
@@ -284,6 +285,8 @@ export class GroupThread {
           ["admins", [[32]]],
           ["owner", [32]],
           ["mediaEnabled", "u8"],
+          ["groupPicHash", { kind: "option", type: "string" }],
+          ["adminOnly", "u8"],
         ],
       },
     ],
@@ -351,6 +354,99 @@ export class GroupThread {
 
     if (!accountInfo?.data) {
       throw new Error("Group thread not found");
+    }
+
+    return this.deserialize(accountInfo.data);
+  }
+}
+
+export class GroupThreadIndex {
+  tag: number;
+  groupName: string;
+  groupThreadKey: Uint8Array;
+  owner: Uint8Array;
+
+  static schema: Schema = new Map([
+    [
+      GroupThreadIndex,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["groupName", "string"],
+          ["groupThreadKey", [32]],
+          ["owner", [32]],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: {
+    groupName: string;
+    groupThreadKey: Uint8Array;
+    owner: Uint8Array;
+  }) {
+    this.tag = Tag.GroupThreadIndex;
+    this.groupName = obj.groupName;
+    this.groupThreadKey = obj.groupThreadKey;
+    this.owner = obj.owner;
+  }
+
+  static deserialize(data: Buffer) {
+    return deserialize(this.schema, GroupThreadIndex, data);
+  }
+
+  static generateSeeds(
+    groupName: string,
+    owner: PublicKey,
+    groupThreadKey: PublicKey
+  ) {
+    return [
+      Buffer.from("group_thread_index"),
+      Buffer.from(groupName),
+      owner.toBuffer(),
+      groupThreadKey.toBuffer(),
+    ];
+  }
+
+  static async getKey(
+    groupName: string,
+    owner: PublicKey,
+    groupThreadKey: PublicKey
+  ) {
+    const [groupThreadIndex] = await PublicKey.findProgramAddress(
+      GroupThreadIndex.generateSeeds(groupName, owner, groupThreadKey),
+      JABBER_ID
+    );
+    return groupThreadIndex;
+  }
+
+  static async retrieve(
+    connection: Connection,
+    groupName: string,
+    owner: PublicKey,
+    groupThreadKey: PublicKey
+  ) {
+    const groupThreadIndexKey = await GroupThreadIndex.getKey(
+      groupName,
+      owner,
+      groupThreadKey
+    );
+
+    const accountInfo = await connection.getAccountInfo(groupThreadIndexKey);
+
+    if (!accountInfo?.data) {
+      throw new Error("Group index not found");
+    }
+
+    return this.deserialize(accountInfo.data);
+  }
+
+  static async retrieveFromKey(connection: Connection, key: PublicKey) {
+    const accountInfo = await connection.getAccountInfo(key);
+
+    if (!accountInfo?.data) {
+      throw new Error("Group index not found");
     }
 
     return this.deserialize(accountInfo.data);
