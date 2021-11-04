@@ -17,20 +17,17 @@ pub const MAX_GROUP_NAME_LEN: usize = 100;
 pub const MAX_ADMIN_LEN: usize = 10;
 pub const MAX_HASH_LEN: usize = 64;
 
-pub const MAX_GROUP_THREAD_LEN: usize = 1
-    + MAX_GROUP_NAME_LEN
-    + 4
-    + 32
-    + 8
-    + 1
-    + 4
-    + MAX_ADMIN_LEN * 32
-    + 32
-    + 1
-    + 4
-    + 1
-    + MAX_HASH_LEN
-    + 1;
+pub const MAX_GROUP_THREAD_LEN: usize = 1 // tag
+    + (4 + MAX_GROUP_NAME_LEN) // group_name
+    + 4 // msg_count
+    + 32 // destination_wallet
+    + 8 // lamports_per_message
+    + 1 // bump
+    + (4 + MAX_ADMIN_LEN * 32) // admins
+    + 32 // owner
+    + 1 // media_enabled
+    + (4 + MAX_HASH_LEN) // group_pic_hash
+    + 1; // admin_only
 
 pub const MAX_GROUP_THREAD_INDEX: usize = 1 + 4 + MAX_GROUP_NAME_LEN + 32 + 32;
 
@@ -375,7 +372,7 @@ impl GroupThread {
     }
 }
 
-// T c o keep track of users' groups
+// To keep track of users' groups
 #[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
 pub struct GroupThreadIndex {
     pub tag: Tag,
