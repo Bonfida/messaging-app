@@ -14,6 +14,7 @@ use solana_program::{
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum JabberInstruction {
+    // 0
     // Accounts expected by this insctruction
     //
     // | Index | Writable | Signer | Description           |
@@ -23,12 +24,14 @@ pub enum JabberInstruction {
     // | 2     | ✅        | ✅      | Profile account owner |
     // | 3     | ✅        | ✅      | Fee payer             |
     CreateProfile(create_profile::Params),
+    // 1
     // | Index | Writable | Signer | Description    |
     // |-------|----------|--------|----------------|
     // | 0     | ❌        | ❌      | System program |
     // | 1     | ✅        | ❌      | Thread account |
     // | 2     | ✅        | ✅      | Fee payer      |
     CreateThread(create_thread::Params),
+    // 2
     //
     // Accounts expected by this instruction
     //
@@ -37,6 +40,7 @@ pub enum JabberInstruction {
     // | 0     	| ✅        	| ✅      	| User                 	|
     // | 1     	| ✅        	| ❌      	| User profile account 	|
     SetUserProfile(set_user_profile::Params),
+    // 3
     //
     // Accounts expected by this instruction
     //
@@ -50,6 +54,7 @@ pub enum JabberInstruction {
     // | 5     	| ✅        	| ❌      	| Message account          	|
     // | 6     	| ✅        	| ❌      	| SOL vault account       	|
     SendMessage(send_message::Params),
+    // 4
     //
     // Create group thread
     //
@@ -59,6 +64,7 @@ pub enum JabberInstruction {
     // | 1     | ✅        | ❌      | Group thread account |
     // | 2     | ✅        | ✅      | Fee payer            |
     CreateGroupThread(create_group_thread::Params),
+    // 5
     //
     // Edit group thread
     //
@@ -67,6 +73,7 @@ pub enum JabberInstruction {
     // | 0     | ✅        | ✅      | Group owner          |
     // | 1     | ✅        | ❌      | Group thread account |
     EditGroupThread(edit_group_thread::Params),
+    // 6
     //
     // Send message to group
     //
@@ -79,6 +86,7 @@ pub enum JabberInstruction {
     // | 4     | ✅        | ❌      | Message account      |
     // | 5     | ✅        | ❌      | SOL vault            |
     SendMessageGroup(send_message_group::Params),
+    // 7
     //
     // Add admin to group
     //
@@ -87,6 +95,7 @@ pub enum JabberInstruction {
     // | 0     | ✅        | ❌      | Group thread account |
     // | 1     | ✅        | ✅      | Group owner          |
     AddAdminToGroup(add_group_admin::Params),
+    // 8
     //
     // Remove admin from group
     //
@@ -95,6 +104,7 @@ pub enum JabberInstruction {
     // | 0     | ✅        | ❌      | Group thread account |
     // | 1     | ✅        | ✅      | Group owner          |
     RemoveAdminGroup(remove_group_admin::Params),
+    // 9
     //
     // Create thread index account
     //

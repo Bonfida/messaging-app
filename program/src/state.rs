@@ -253,21 +253,21 @@ impl Message {
 #[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
 pub struct GroupThread {
     pub tag: Tag,
-    pub group_name: String,
-    pub msg_count: u32,
-    pub destination_wallet: Pubkey,
-    pub lamports_per_message: u64,
-    pub bump: u8,
-    // Admins of the group (fee exempt)
-    pub admins: Vec<Pubkey>,
     // Owner of the group (fee exempt)
     pub owner: Pubkey,
+    pub destination_wallet: Pubkey,
+    pub msg_count: u32,
+    pub lamports_per_message: u64,
+    pub bump: u8,
     // Whether users can post media (images, videos and audios)
     pub media_enabled: bool,
-    // IPFS hash of the group
-    pub group_pic_hash: Option<String>,
     // Whether admins only can post messages
     pub admin_only: bool,
+    // IPFS hash of the group
+    pub group_pic_hash: Option<String>,
+    pub group_name: String,
+    // Admins of the group (fee exempt)
+    pub admins: Vec<Pubkey>,
 }
 
 impl GroupThread {
@@ -376,9 +376,9 @@ impl GroupThread {
 #[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
 pub struct GroupThreadIndex {
     pub tag: Tag,
-    pub group_name: String,
     pub group_thread_key: Pubkey,
     pub owner: Pubkey,
+    pub group_name: String,
 }
 
 impl GroupThreadIndex {

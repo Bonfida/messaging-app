@@ -302,7 +302,8 @@ export class CreateGroupThread {
   lamportsPerMessage: BN;
   admins: Uint8Array[];
   owner: Uint8Array;
-  mediaEnabled: boolean;
+  mediaEnabled: number;
+  adminOnly: number;
 
   static schema: Schema = new Map([
     [
@@ -317,6 +318,7 @@ export class CreateGroupThread {
           ["admins", [[32]]],
           ["owner", [32]],
           ["mediaEnabled", "u8"],
+          ["adminOnly", "u8"],
         ],
       },
     ],
@@ -329,6 +331,7 @@ export class CreateGroupThread {
     admins: Uint8Array[];
     owner: Uint8Array;
     mediaEnabled: boolean;
+    adminOnly: boolean;
   }) {
     this.tag = 4;
     this.groupName = obj.groupName;
@@ -336,7 +339,8 @@ export class CreateGroupThread {
     this.lamportsPerMessage = obj.lamportsPerMessage;
     this.admins = obj.admins;
     this.owner = obj.owner;
-    this.mediaEnabled = obj.mediaEnabled;
+    this.mediaEnabled = obj.mediaEnabled ? 1 : 0;
+    this.adminOnly = obj.adminOnly ? 1 : 0;
   }
 
   serialize(): Uint8Array {
@@ -510,7 +514,7 @@ export class RemoveGroupAdmin {
   ]);
 
   constructor(obj: { adminAddress: Uint8Array; adminIndex: number }) {
-    this.tag = 7;
+    this.tag = 8;
     this.adminAddress = obj.adminAddress;
     this.adminIndex = obj.adminIndex;
   }
@@ -570,7 +574,7 @@ export class CreateGroupIndex {
     groupThreadKey: Uint8Array;
     owner: Uint8Array;
   }) {
-    this.tag = 8;
+    this.tag = 9;
     this.groupName = obj.groupName;
     this.groupThreadKey = obj.groupThreadKey;
     this.owner = obj.owner;

@@ -8,6 +8,7 @@ import {
   EditGroupThread,
   AddGroupAdmin,
   RemoveGroupAdmin,
+  CreateGroupIndex,
 } from "./instructions";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
@@ -19,7 +20,6 @@ import {
   GroupThread,
   GroupThreadIndex,
 } from "./state";
-import { CreateGroupIndex } from "src";
 
 /**
  *
@@ -200,6 +200,7 @@ export const createGroupThread = async (
   admins: PublicKey[],
   owner: PublicKey,
   mediaEnabled: boolean,
+  adminOnly: boolean,
   feePayer: PublicKey
 ) => {
   const groupThread = await GroupThread.getKey(groupName, owner);
@@ -211,6 +212,7 @@ export const createGroupThread = async (
     admins: admins.map((e) => e.toBuffer()),
     owner: owner.toBuffer(),
     mediaEnabled,
+    adminOnly,
   }).getInstruction(groupThread, feePayer);
 
   return instruction;
