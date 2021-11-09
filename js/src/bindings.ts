@@ -9,8 +9,11 @@ import {
   AddGroupAdmin,
   RemoveGroupAdmin,
   CreateGroupIndex,
+  SendMessageGroup,
+  DeleteMessage,
+  DeleteGroupMessage,
 } from "./instructions";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, MemcmpFilter, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import {
   Profile,
@@ -232,7 +235,9 @@ export const editGroupThread = async (
   owner: PublicKey,
   destinationWallet: PublicKey,
   lamportsPerMessage: BN,
-  mediaEnabled: boolean
+  mediaEnabled: boolean,
+  adminOnly: boolean,
+  groupPicHash?: string
 ) => {
   const groupThread = await GroupThread.getKey(groupName, owner);
 
@@ -241,6 +246,8 @@ export const editGroupThread = async (
     lamportsPerMessage,
     owner: owner.toBuffer(),
     mediaEnabled: mediaEnabled,
+    adminOnly,
+    groupPicHash,
   }).getInstruction(owner, groupThread);
 
   return instruction;
@@ -302,6 +309,119 @@ export const createGroupIndex = async (
     groupThreadKey: groupThread.toBuffer(),
     owner: owner.toBuffer(),
   }).getInstruction(groupIndex, owner);
+
+  return instruction;
+};
+
+/**
+ *
+ * @param kind Message type
+ * @param message Message to send
+ * @param groupName Name of the group
+ * @param sender User sending the message
+ * @param groupThread Key of the group thread
+ * @param destinationWallet Destination wallet of the group
+ * @param messageAccount Account of the message
+ * @param adminIndex Admin index
+ */
+export const sendMessageGroup = async (
+  kind: MessageType,
+  message: Uint8Array,
+  groupName: string,
+  sender: PublicKey,
+  groupThread: PublicKey,
+  destinationWallet: PublicKey,
+  messageAccount: PublicKey,
+  adminIndex?: number
+) => {
+  const instruction = new SendMessageGroup({
+    kind,
+    message,
+    groupName,
+    adminIndex,
+  }).getInstruction(sender, groupThread, destinationWallet, messageAccount);
+
+  return instruction;
+};
+
+/**
+ *
+ * @param connection The solana connection object to the RPC node
+ * @param user The user to fetch the groups for
+ * @returns
+ */
+export const retrieveUserGroups = async (
+  connection: Connection,
+  user: PublicKey
+) => {
+  let filters: MemcmpFilter[] = [
+    {
+      memcmp: {
+        offset: 1 + 32,
+        bytes: user.toBase58(),
+      },
+    },
+    {
+      memcmp: {
+        offset: 0,
+        bytes: "7",
+      },
+    },
+  ];
+  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+
+  return result;
+};
+
+/**
+ *
+ * @param sender Original sender of the message
+ * @param receiver Original receiver of the message
+ * @param message Account of the message to delete
+ * @param messageIndex Index of the message in the thread
+ * @returns
+ */
+export const deleteMessage = async (
+  sender: PublicKey,
+  receiver: PublicKey,
+  message: PublicKey,
+  messageIndex: number
+) => {
+  const instruction = new DeleteMessage({ messageIndex }).getInstruction(
+    sender,
+    receiver,
+    message
+  );
+
+  return instruction;
+};
+
+/**
+ *
+ * @param groupThread Group thread address
+ * @param message Account of the message to delete
+ * @param feePayer Fee payer (either owner, admin or original sender)
+ * @param messageIndex Index of the message in the thread
+ * @param owner Owner of the group
+ * @param groupName Name of the group
+ * @param adminIndex The index of the admin in the list of admins (if feePayer is an admin) | undefined
+ * @returns
+ */
+export const deleteGroupMessage = async (
+  groupThread: PublicKey,
+  message: PublicKey,
+  feePayer: PublicKey,
+  messageIndex: number,
+  owner: PublicKey,
+  groupName: string,
+  adminIndex?: number
+) => {
+  const instruction = new DeleteGroupMessage({
+    messageIndex,
+    owner: owner.toBuffer(),
+    adminIndex: adminIndex ? new BN(adminIndex) : undefined,
+    groupName,
+  }).getInstruction(groupThread, message, feePayer);
 
   return instruction;
 };

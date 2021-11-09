@@ -169,6 +169,7 @@ pub enum MessageType {
     Unencrypted,
     EncryptedImage,
     UnencryptedImage,
+    Deleted,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
