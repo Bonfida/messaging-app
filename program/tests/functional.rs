@@ -1,8 +1,8 @@
 use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
     add_admin_to_group, add_group_admin, create_group_index, create_group_thread, create_profile,
-    create_thread, edit_group_thread, remove_admin_from_group, remove_group_admin, send_message,
-    send_message_group,
+    create_thread, delete_group_message, delete_message, edit_group_thread,
+    remove_admin_from_group, remove_group_admin, send_message, send_message_group,
 };
 use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
 use jabber::state::{Message, Profile, Thread};
@@ -267,6 +267,43 @@ async fn test_jabber() {
         &mut prg_test_ctx,
         vec![create_group_index_instruction_2],
         vec![],
+    )
+    .await
+    .unwrap();
+
+    // Delete message
+
+    let delete_message_instruction = delete_message(
+        jabber_program_id,
+        prg_test_ctx.payer.pubkey(),
+        receiver_account.pubkey(),
+        message_account,
+        delete_message::Params { message_index: 0 },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![delete_message_instruction], vec![])
+        .await
+        .unwrap();
+
+    // Delete group message
+
+    let delete_group_message_instruction = delete_group_message(
+        jabber_program_id,
+        group_thread,
+        group_message,
+        receiver_account.pubkey(),
+        delete_group_message::Params {
+            message_index: 0,
+            admin_index: Some(0),
+            owner: prg_test_ctx.payer.pubkey(),
+            group_name: "group_name".to_string(),
+        },
+    );
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![delete_group_message_instruction],
+        vec![&receiver_account],
     )
     .await
     .unwrap();

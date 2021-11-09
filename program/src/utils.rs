@@ -106,3 +106,36 @@ pub fn check_hash_len(hash: &Option<String>) -> ProgramResult {
     }
     Ok(())
 }
+
+pub fn check_keys(key_1: &Pubkey, key_2: &Pubkey) -> ProgramResult {
+    if key_1 != key_2 {
+        msg!("+ Keys are not the same");
+        return Err(ProgramError::InvalidArgument);
+    }
+    Ok(())
+}
+
+pub fn check_names(name_1: &str, name_2: &str) -> ProgramResult {
+    if name_1 != name_2 {
+        msg!("+ names are not the same");
+        return Err(ProgramError::InvalidArgument);
+    }
+    Ok(())
+}
+
+#[test]
+fn test() {
+    use std::str::FromStr;
+    assert!(check_names(&"name_1".to_string(), &"name_2".to_string()).is_err());
+    assert!(check_names(&"name_1".to_string(), &"name_1".to_string()).is_ok());
+
+    let pubkey_1 = Pubkey::from_str("GJKmBkyZduYq3UxcrAjecBRv1QQ1LqjYoCo8KoqHxb8F").unwrap();
+    let pubkey_2 = Pubkey::from_str("otterzZrCX39w8zeRSyXinWgDXS2irJ3GGecVmQJQ5D").unwrap();
+
+    assert!(check_keys(&pubkey_1, &pubkey_2).is_err());
+    assert!(check_keys(&pubkey_1, &pubkey_1).is_ok());
+
+    let ordered_keys = order_keys(&pubkey_1, &pubkey_2);
+
+    assert_eq!(ordered_keys, (pubkey_1, pubkey_2));
+}

@@ -79,6 +79,9 @@ impl PrintProgramError for JabberError {
             JabberError::InvalidHashLength => {
                 msg!("Error: Invalid hash length")
             }
+            JabberError::WrongMessageOwner => {
+                msg!("Error: Wrong message owner")
+            }
         }
     }
 }

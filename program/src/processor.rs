@@ -11,6 +11,8 @@ pub mod create_group_index;
 pub mod create_group_thread;
 pub mod create_profile;
 pub mod create_thread;
+pub mod delete_group_message;
+pub mod delete_message;
 pub mod edit_group_thread;
 pub mod remove_group_admin;
 pub mod send_message;
@@ -70,6 +72,14 @@ impl Processor {
             JabberInstruction::CreateGroupIndex(params) => {
                 msg!("Instruction: Create group thread index");
                 create_group_index::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::DeleteMessage(params) => {
+                msg!("Instruction: Delete message");
+                delete_message::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::DeleteGroupMessage(params) => {
+                msg!("Instruction: Delete group message");
+                delete_group_message::process(program_id, accounts, params)?;
             }
         }
         Ok(())

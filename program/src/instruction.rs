@@ -1,6 +1,7 @@
 pub use crate::processor::{
     add_group_admin, create_group_index, create_group_thread, create_profile, create_thread,
-    edit_group_thread, remove_group_admin, send_message, send_message_group, set_user_profile,
+    delete_group_message, delete_message, edit_group_thread, remove_group_admin, send_message,
+    send_message_group, set_user_profile,
 };
 use crate::utils::SOL_VAULT;
 use std::{str::FromStr, vec};
@@ -114,6 +115,26 @@ pub enum JabberInstruction {
     // | 1     | ✅        | ❌      | Group thread index |
     // | 2     | ✅        | ✅      | Fee payer          |
     CreateGroupIndex(create_group_index::Params),
+    // 10
+    //
+    // Delete a message
+    //
+    // | Index | Writable | Signer | Description     |
+    // |-------|----------|--------|-----------------|
+    // | 0     | ✅        | ✅      | Sender          |
+    // | 1     | ❌        | ❌      | Receiver        |
+    // | 2     | ✅        | ❌      | Message account |
+    DeleteMessage(delete_message::Params),
+    // 11
+    //
+    // Delete a group message
+    //
+    // | Index | Writable | Signer | Description     |
+    // |-------|----------|--------|-----------------|
+    // | 0     | ❌        | ❌      | Group thread    |
+    // | 1     | ✅        | ❌      | Message account |
+    // | 2     | ✅        | ✅      | Fee payer       |
+    DeleteGroupMessage(delete_group_message::Params),
 }
 
 pub fn create_profile(
@@ -326,6 +347,50 @@ pub fn create_group_index(
         AccountMeta::new_readonly(system_program::ID, false),
         AccountMeta::new(group_thread_index, false),
         AccountMeta::new(fee_payer, true),
+    ];
+
+    Instruction {
+        program_id: jabber_program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn delete_message(
+    jabber_program_id: Pubkey,
+    sender: Pubkey,
+    receiver: Pubkey,
+    message: Pubkey,
+    params: delete_message::Params,
+) -> Instruction {
+    let instruction_data = JabberInstruction::DeleteMessage(params);
+    let data = instruction_data.try_to_vec().unwrap();
+    let accounts = vec![
+        AccountMeta::new(sender, true),
+        AccountMeta::new_readonly(receiver, false),
+        AccountMeta::new(message, false),
+    ];
+
+    Instruction {
+        program_id: jabber_program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn delete_group_message(
+    jabber_program_id: Pubkey,
+    group_thread: Pubkey,
+    message: Pubkey,
+    fee_payer: Pubkey,
+    params: delete_group_message::Params,
+) -> Instruction {
+    let instruction_data = JabberInstruction::DeleteGroupMessage(params);
+    let data = instruction_data.try_to_vec().unwrap();
+    let accounts = vec![
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new_readonly(group_thread, false),
+        AccountMeta::new(message, false),
     ];
 
     Instruction {
