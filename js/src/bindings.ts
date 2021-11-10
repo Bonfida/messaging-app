@@ -425,3 +425,28 @@ export const deleteGroupMessage = async (
 
   return instruction;
 };
+
+export const retrieveGroupMembers = async (
+  connection: Connection,
+  group: PublicKey
+) => {
+  let filters: MemcmpFilter[] = [
+    {
+      memcmp: {
+        offset: 1,
+        bytes: group.toBase58(),
+      },
+    },
+    {
+      memcmp: {
+        offset: 0,
+        bytes: "7",
+      },
+    },
+  ];
+  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+
+  return result.map(
+    (acc) => GroupThreadIndex.deserialize(acc.account.data).owner
+  );
+};
