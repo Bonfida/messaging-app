@@ -314,7 +314,7 @@ export class GroupThread {
   }
 
   static deserialize(data: Buffer) {
-    return deserialize(this.schema, GroupThread, data);
+    return deserializeUnchecked(this.schema, GroupThread, data);
   }
 
   static generateSeeds(groupName: string, owner: PublicKey) {
@@ -393,7 +393,7 @@ export class GroupThreadIndex {
   }
 
   static deserialize(data: Buffer) {
-    return deserialize(this.schema, GroupThreadIndex, data);
+    return deserializeUnchecked(this.schema, GroupThreadIndex, data);
   }
 
   static generateSeeds(
