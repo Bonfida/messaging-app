@@ -521,7 +521,7 @@ export class SendMessageGroup {
       {
         pubkey: destinationWallet,
         isSigner: false,
-        isWritable: false,
+        isWritable: true,
       },
       // Account 5
       {
