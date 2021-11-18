@@ -823,20 +823,20 @@ export class DeleteGroupMessage {
     const keys = [
       // Account 1
       {
+        pubkey: feePayer,
+        isSigner: true,
+        isWritable: true,
+      },
+      // Account 2
+      {
         pubkey: groupThread,
         isSigner: false,
         isWritable: false,
       },
-      // Account 2
+      // Account 3
       {
         pubkey: message,
         isSigner: false,
-        isWritable: true,
-      },
-      // Account 3
-      {
-        pubkey: feePayer,
-        isSigner: true,
         isWritable: true,
       },
     ];
