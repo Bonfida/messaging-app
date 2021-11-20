@@ -82,6 +82,9 @@ impl PrintProgramError for JabberError {
             JabberError::WrongMessageOwner => {
                 msg!("Error: Wrong message owner")
             }
+            JabberError::ChatMuted => {
+                msg!("Error: Chat is muted")
+            }
         }
     }
 }

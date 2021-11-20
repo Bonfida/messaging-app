@@ -95,6 +95,22 @@ pub fn check_group_message_type(
     }
 }
 
+pub fn check_admin_only(
+    group_thread: &GroupThread,
+    address: &Pubkey,
+    admin_index: Option<usize>,
+) -> ProgramResult {
+    if !group_thread.admin_only {
+        return Ok(());
+    }
+    let admin_index = admin_index.unwrap();
+    let is_admin = group_thread.admins.get(admin_index).unwrap() == address;
+    if !is_admin {
+        return Err(JabberError::ChatMuted.into());
+    }
+    Ok(())
+}
+
 pub fn check_hash_len(hash: &Option<String>) -> ProgramResult {
     let too_long = match hash {
         Some(hash) => hash.len() > MAX_HASH_LEN,

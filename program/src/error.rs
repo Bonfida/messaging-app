@@ -40,6 +40,8 @@ pub enum JabberError {
     InvalidHashLength,
     #[error("Wrong message owner")]
     WrongMessageOwner,
+    #[error("Chat is muted")]
+    ChatMuted,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {

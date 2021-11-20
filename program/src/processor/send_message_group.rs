@@ -3,8 +3,8 @@ use std::str::FromStr;
 use crate::{
     state::MessageType,
     utils::{
-        check_account_key, check_account_owner, check_group_message_type, check_rent_exempt,
-        check_signer, FEE, SOL_VAULT,
+        check_account_key, check_account_owner, check_admin_only, check_group_message_type,
+        check_rent_exempt, check_signer, FEE, SOL_VAULT,
     },
 };
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -98,6 +98,8 @@ pub(crate) fn process(
         program_id,
         group_thread.bump,
     );
+
+    check_admin_only(&group_thread, accounts.sender.key, admin_index)?;
 
     check_account_key(
         accounts.group_thread,
