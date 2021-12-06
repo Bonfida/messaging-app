@@ -5,3 +5,6 @@ dist/
 node_modules/
 wallet.json
 .DS_Store
+test.ts
+members.json
+tx.json
