@@ -100,7 +100,7 @@ pub fn check_admin_only(
     address: &Pubkey,
     admin_index: Option<usize>,
 ) -> ProgramResult {
-    if !group_thread.admin_only {
+    if !group_thread.admin_only || &group_thread.owner == address {
         return Ok(());
     }
     let admin_index = admin_index.unwrap();
