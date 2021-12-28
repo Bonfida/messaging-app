@@ -25,11 +25,11 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
-    group_thread: &'a T,
+    pub group_thread: &'a T,
     #[cons(writable)]
-    message: &'a T,
+    pub message: &'a T,
     #[cons(writable, signer)]
-    fee_payer: &'a T,
+    pub fee_payer: &'a T,
 }
 
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {

@@ -1,5 +1,5 @@
 use crate::error::JabberError;
-use crate::state::{Thread, MAX_THREAD_LEN};
+use crate::state::Thread;
 use crate::utils::check_account_key;
 use crate::utils::order_keys;
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -75,13 +75,16 @@ pub(crate) fn process(
         JabberError::AccountNotDeterministic,
     )?;
 
-    let lamports = Rent::get()?.minimum_balance(MAX_THREAD_LEN);
     let (key_1, key_2) = order_keys(&receiver_key, &sender_key);
+    let current_time = Clock::get()?.unix_timestamp;
+    let thread = Thread::new(key_1, key_2, bump, current_time);
+
+    let lamports = Rent::get()?.minimum_balance(thread.borsh_len());
     let allocate_account = create_account(
         accounts.fee_payer.key,
         &thread_key,
         lamports,
-        MAX_THREAD_LEN as u64,
+        thread.borsh_len() as u64,
         program_id,
     );
 
@@ -100,9 +103,6 @@ pub(crate) fn process(
         ]],
     )?;
 
-    let current_time = Clock::get()?.unix_timestamp;
-
-    let thread = Thread::new(key_1, key_2, bump, current_time);
     thread.save(&mut accounts.thread.try_borrow_mut_data()?);
 
     Ok(())

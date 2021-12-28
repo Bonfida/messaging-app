@@ -7,4 +7,4 @@ pub mod state;
 
 pub(crate) mod processor;
 
-pub(crate) mod utils;
+pub mod utils;

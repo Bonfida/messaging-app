@@ -1,8 +1,8 @@
 use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
-    add_admin_to_group, add_admin_to_group, create_group_index, create_group_thread,
-    create_profile, create_thread, delete_group_message, delete_message, edit_group_thread,
-    remove_admin_from_group, remove_admin_from_group, send_message, send_message_group,
+    add_admin_to_group, create_group_index, create_group_thread, create_profile, create_thread,
+    delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
+    send_message_group,
 };
 use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
 use jabber::state::{Message, Profile, Thread};
@@ -11,6 +11,7 @@ use solana_program::{pubkey::Pubkey, system_program};
 use solana_program_test::{processor, ProgramTest};
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signer;
+use std::str::FromStr;
 
 pub mod common;
 
@@ -44,7 +45,7 @@ async fn test_jabber() {
         },
         create_profile::Params {
             picture_hash: "Receiver".to_string(),
-            display_domain_name: "Test",
+            display_domain_name: "Test".to_string(),
             bio: "I receive message".to_string(),
             lamports_per_message: 1_000_000_000,
         },
@@ -103,7 +104,7 @@ async fn test_jabber() {
         },
         send_message::Params {
             replies_to: Pubkey::default(),
-            kind: MessageType::Unencrypted,
+            kind: MessageType::UnencryptedText,
             message: "Test JKnsfdjbgdfuigjbn sdjknfsdjkfndsfjkn"
                 .to_string()
                 .as_bytes()
@@ -145,13 +146,9 @@ async fn test_jabber() {
         },
     );
 
-    sign_send_instructions(
-        &mut prg_test_ctx,
-        vec![create_group_thread_instruction],
-        vec![],
-    )
-    .await
-    .unwrap();
+    sign_send_instructions(&mut prg_test_ctx, vec![create_group_thread_ix], vec![])
+        .await
+        .unwrap();
 
     // Edit group
     let edit_group_thread_ix = edit_group_thread(
@@ -176,8 +173,7 @@ async fn test_jabber() {
 
     // Send message
 
-    let (group_message, _) =
-        Message::find_from_keys(0, &group_thread, &group_thread, &jabber_program_id);
+    let (group_message, _) = Message::find_key(0, &group_thread, &group_thread, &jabber_program_id);
 
     let send_group_message_ix = send_message_group(
         jabber_program_id,
@@ -190,7 +186,7 @@ async fn test_jabber() {
             sol_vault: &Pubkey::from_str(SOL_VAULT).unwrap(),
         },
         send_message_group::Params {
-            kind: MessageType::Unencrypted,
+            kind: MessageType::UnencryptedText,
             message: "Coucou les gars".to_string().as_bytes().to_vec(),
             group_name: "group_name".to_string(),
             admin_index: None,
@@ -237,7 +233,7 @@ async fn test_jabber() {
 
     // Create group index
 
-    let (group_index, _) = GroupThreadIndex::find_address(
+    let (group_index, _) = GroupThreadIndex::find_key(
         "group name".to_string(),
         group_thread,
         prg_test_ctx.payer.pubkey(),
@@ -261,7 +257,7 @@ async fn test_jabber() {
         .await
         .unwrap();
 
-    let (group_index_2, _) = GroupThreadIndex::find_address(
+    let (group_index_2, _) = GroupThreadIndex::find_key(
         "group name".to_string(),
         group_thread,
         receiver_account.pubkey(),
@@ -278,7 +274,7 @@ async fn test_jabber() {
         create_group_index::Params {
             group_name: "group name".to_string(),
             group_thread_key: group_thread,
-            owner: prg_test_ctx.payer.pubkey(),
+            owner: receiver_account.pubkey(),
         },
     );
 
@@ -317,11 +313,7 @@ async fn test_jabber() {
         },
     );
 
-    sign_send_instructions(
-        &mut prg_test_ctx,
-        vec![delete_group_message_ix],
-        vec![&receiver_account],
-    )
-    .await
-    .unwrap();
+    sign_send_instructions(&mut prg_test_ctx, vec![delete_group_message_ix], vec![])
+        .await
+        .unwrap();
 }

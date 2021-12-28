@@ -140,7 +140,7 @@ pub(crate) fn process(
 
     let now = Clock::get()?.unix_timestamp;
     let message = Message::new(kind, now, message, *accounts.sender.key, replies_to);
-    let message_len = message.get_len();
+    let message_len = message.borsh_len();
     let lamports = Rent::get()?.minimum_balance(message_len);
 
     let allocate_account = create_account(

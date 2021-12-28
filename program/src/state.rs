@@ -32,7 +32,7 @@ pub const MAX_GROUP_THREAD_LEN: usize = 1 // tag
 
 pub const MAX_GROUP_THREAD_INDEX: usize = 1 + 4 + MAX_GROUP_NAME_LEN + 32 + 32;
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy, BorshSize)]
 pub enum Tag {
     Uninitialized,
     Profile,
@@ -105,7 +105,7 @@ impl Profile {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize)]
+#[derive(BorshSerialize, BorshDeserialize, BorshSize)]
 pub struct Thread {
     pub tag: Tag,
     pub msg_count: u32,
@@ -189,7 +189,7 @@ pub enum MessageType {
     Deleted,
 }
 
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Message {
     pub tag: Tag,
     // Message type
@@ -210,10 +210,6 @@ pub struct Message {
 
 impl Message {
     pub const SEED: &'static str = "message";
-
-    pub fn get_len(&self) -> usize {
-        1 + 1 + 8 + self.msg.len() + 4 + 32
-    }
 
     pub fn new(
         kind: MessageType,
@@ -382,12 +378,12 @@ impl GroupThread {
         Ok(result)
     }
 
-    pub fn is_fee_exempt(&self, sender: Pubkey, admin_index: Option<usize>) -> bool {
+    pub fn is_fee_exempt(&self, sender: Pubkey, admin_index: Option<u64>) -> bool {
         if self.destination_wallet == sender {
             return true;
         }
         if let Some(idx) = admin_index {
-            return self.admins[idx] == sender;
+            return self.admins[idx as usize] == sender;
         }
         false
     }
