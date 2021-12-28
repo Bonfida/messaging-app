@@ -26,7 +26,9 @@ pub struct Params {
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
     group_thread: &'a T,
+    #[cons(writable)]
     message: &'a T,
+    #[cons(writable, signer)]
     fee_payer: &'a T,
 }
 
@@ -38,9 +40,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     ) -> Result<(Self, Message, GroupThread), ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Self {
-            fee_payer: next_account_info(accounts_iter)?,
             group_thread: next_account_info(accounts_iter)?,
             message: next_account_info(accounts_iter)?,
+            fee_payer: next_account_info(accounts_iter)?,
         };
         check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
         check_account_owner(
@@ -103,7 +105,7 @@ pub(crate) fn process(
     let mut is_admin = false;
 
     if let Some(index) = params.admin_index {
-        is_admin = group_thread.admins.get(index).unwrap() == accounts.fee_payer.key;
+        is_admin = group_thread.admins.get(index as usize).unwrap() == accounts.fee_payer.key;
     }
 
     if !(is_admin || is_sender || is_owner) {

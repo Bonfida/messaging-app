@@ -24,7 +24,9 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    #[cons(writable, signer)]
     pub group_owner: &'a T,
+    #[cons(writable)]
     pub group_thread: &'a T,
 }
 

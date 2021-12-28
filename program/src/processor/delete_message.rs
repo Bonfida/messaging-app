@@ -18,8 +18,10 @@ pub struct Params {
 }
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    #[cons(writable, signer)]
     pub sender: &'a T,
     pub receiver: &'a T,
+    #[cons(writable)]
     pub message: &'a T,
 }
 
