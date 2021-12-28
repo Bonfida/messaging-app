@@ -4,6 +4,7 @@ use crate::utils::{check_account_key, check_group_thread_params};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
+    clock::Clock,
     entrypoint::ProgramResult,
     program::invoke_signed,
     program_error::ProgramError,
@@ -14,7 +15,9 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub group_name: String,
     pub destination_wallet: Pubkey,
@@ -25,13 +28,14 @@ pub struct Params {
     pub admin_only: bool,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    group_thread: &'a AccountInfo<'b>,
-    fee_payer: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub group_thread: &'a T,
+    pub fee_payer: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         _program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -70,11 +74,7 @@ pub(crate) fn process(
         admin_only,
     } = params;
 
-    let (group_thread_key, bump) = GroupThread::find_from_destination_wallet_and_name(
-        group_name.to_string(),
-        owner,
-        program_id,
-    );
+    let (group_thread_key, bump) = GroupThread::find_key(group_name.to_string(), owner, program_id);
 
     check_group_thread_params(&group_name, &admins)?;
 
@@ -108,6 +108,8 @@ pub(crate) fn process(
         ]],
     )?;
 
+    let current_time = Clock::get()?.unix_timestamp;
+
     let group_thread = GroupThread::new(
         group_name,
         destination_wallet,
@@ -117,7 +119,9 @@ pub(crate) fn process(
         owner,
         media_enabled,
         admin_only,
+        current_time,
     );
+
     group_thread.save(&mut accounts.group_thread.try_borrow_mut_data()?);
 
     Ok(())

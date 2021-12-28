@@ -9,18 +9,21 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub admin_address: Pubkey,
-    pub admin_index: usize,
+    pub admin_index: u64,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    group_thread: &'a AccountInfo<'b>,
-    group_owner: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    group_thread: &'a T,
+    group_owner: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -45,7 +48,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
 
         let group_thread = GroupThread::from_account_info(accounts.group_thread)?;
 
-        let expected_group_thread_key = GroupThread::create_from_destination_wallet_and_name(
+        let expected_group_thread_key = GroupThread::create_key(
             group_thread.group_name,
             group_thread.owner,
             program_id,
@@ -80,7 +83,7 @@ pub(crate) fn process(
     } = params;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
-    group_thread.remove_admin(admin_address, admin_index)?;
+    group_thread.remove_admin(admin_address, admin_index as usize)?;
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
 
     Ok(())

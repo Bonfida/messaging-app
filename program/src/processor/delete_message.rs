@@ -10,17 +10,20 @@ use solana_program::{
 use crate::error::JabberError;
 use crate::state::{Message, MessageType};
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub message_index: u32,
 }
-struct Accounts<'a, 'b: 'a> {
-    sender: &'a AccountInfo<'b>,
-    receiver: &'a AccountInfo<'b>,
-    message: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub sender: &'a T,
+    pub receiver: &'a T,
+    pub message: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -37,7 +40,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
 
         let message = Message::from_account_info(accounts.message)?;
 
-        let (expected_message_key, _) = Message::find_from_keys(
+        let (expected_message_key, _) = Message::find_key(
             params.message_index,
             accounts.sender.key,
             accounts.receiver.key,

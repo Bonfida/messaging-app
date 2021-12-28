@@ -1,19 +1,14 @@
 pub use crate::processor::{
-    add_group_admin, create_group_index, create_group_thread, create_profile, create_thread,
-    delete_group_message, delete_message, edit_group_thread, remove_group_admin, send_message,
+    add_admin_to_group, create_group_index, create_group_thread, create_profile, create_thread,
+    delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
     send_message_group, set_user_profile,
 };
-use crate::utils::SOL_VAULT;
-use std::{str::FromStr, vec};
 
+use bonfida_utils::InstructionsAccount;
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{
-    instruction::{AccountMeta, Instruction},
-    pubkey::Pubkey,
-    system_program,
-};
+use solana_program::{instruction::Instruction, pubkey::Pubkey};
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub enum JabberInstruction {
     // 0
     // Accounts expected by this insctruction
@@ -24,14 +19,14 @@ pub enum JabberInstruction {
     // | 1     | ✅        | ❌      | Profile account       |
     // | 2     | ✅        | ✅      | Profile account owner |
     // | 3     | ✅        | ✅      | Fee payer             |
-    CreateProfile(create_profile::Params),
+    CreateProfile,
     // 1
     // | Index | Writable | Signer | Description    |
     // |-------|----------|--------|----------------|
     // | 0     | ❌        | ❌      | System program |
     // | 1     | ✅        | ❌      | Thread account |
     // | 2     | ✅        | ✅      | Fee payer      |
-    CreateThread(create_thread::Params),
+    CreateThread,
     // 2
     //
     // Accounts expected by this instruction
@@ -40,7 +35,7 @@ pub enum JabberInstruction {
     // |-------	|----------	|--------	|----------------------	|
     // | 0     	| ✅        	| ✅      	| User                 	|
     // | 1     	| ✅        	| ❌      	| User profile account 	|
-    SetUserProfile(set_user_profile::Params),
+    SetUserProfile,
     // 3
     //
     // Accounts expected by this instruction
@@ -54,7 +49,7 @@ pub enum JabberInstruction {
     // | 4     	| ❌       	| ❌      	| Receiver profile        	|
     // | 5     	| ✅        	| ❌      	| Message account          	|
     // | 6     	| ✅        	| ❌      	| SOL vault account       	|
-    SendMessage(send_message::Params),
+    SendMessage,
     // 4
     //
     // Create group thread
@@ -64,7 +59,7 @@ pub enum JabberInstruction {
     // | 0     | ❌        | ❌      | System program       |
     // | 1     | ✅        | ❌      | Group thread account |
     // | 2     | ✅        | ✅      | Fee payer            |
-    CreateGroupThread(create_group_thread::Params),
+    CreateGroupThread,
     // 5
     //
     // Edit group thread
@@ -73,7 +68,7 @@ pub enum JabberInstruction {
     // |-------|----------|--------|----------------------|
     // | 0     | ✅        | ✅      | Group owner          |
     // | 1     | ✅        | ❌      | Group thread account |
-    EditGroupThread(edit_group_thread::Params),
+    EditGroupThread,
     // 6
     //
     // Send message to group
@@ -86,7 +81,7 @@ pub enum JabberInstruction {
     // | 3     | ✅        | ❌      | Destination wallet   |
     // | 4     | ✅        | ❌      | Message account      |
     // | 5     | ✅        | ❌      | SOL vault            |
-    SendMessageGroup(send_message_group::Params),
+    SendMessageGroup,
     // 7
     //
     // Add admin to group
@@ -95,7 +90,7 @@ pub enum JabberInstruction {
     // |-------|----------|--------|----------------------|
     // | 0     | ✅        | ❌      | Group thread account |
     // | 1     | ✅        | ✅      | Group owner          |
-    AddAdminToGroup(add_group_admin::Params),
+    AddAdminToGroup,
     // 8
     //
     // Remove admin from group
@@ -104,7 +99,7 @@ pub enum JabberInstruction {
     // |-------|----------|--------|----------------------|
     // | 0     | ✅        | ❌      | Group thread account |
     // | 1     | ✅        | ✅      | Group owner          |
-    RemoveAdminGroup(remove_group_admin::Params),
+    RemoveAdminFromGroup,
     // 9
     //
     // Create thread index account
@@ -114,7 +109,7 @@ pub enum JabberInstruction {
     // | 0     | ❌        | ❌      | System program     |
     // | 1     | ✅        | ❌      | Group thread index |
     // | 2     | ✅        | ✅      | Fee payer          |
-    CreateGroupIndex(create_group_index::Params),
+    CreateGroupIndex,
     // 10
     //
     // Delete a message
@@ -124,7 +119,7 @@ pub enum JabberInstruction {
     // | 0     | ✅        | ✅      | Sender          |
     // | 1     | ❌        | ❌      | Receiver        |
     // | 2     | ✅        | ❌      | Message account |
-    DeleteMessage(delete_message::Params),
+    DeleteMessage,
     // 11
     //
     // Delete a group message
@@ -134,268 +129,121 @@ pub enum JabberInstruction {
     // | 0     | ❌        | ❌      | Group thread    |
     // | 1     | ✅        | ❌      | Message account |
     // | 2     | ✅        | ✅      | Fee payer       |
-    DeleteGroupMessage(delete_group_message::Params),
+    DeleteGroupMessage,
 }
 
 pub fn create_profile(
-    jabber_program_id: Pubkey,
-    profile_account: Pubkey,
-    profile_account_owner: Pubkey,
-    fee_payer: Pubkey,
+    program_id: Pubkey,
+    accounts: create_profile::Accounts<Pubkey>,
     params: create_profile::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::CreateProfile(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(profile_account, false),
-        AccountMeta::new(profile_account_owner, true),
-        AccountMeta::new(fee_payer, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::CreateProfile as u8, params)
 }
 
 pub fn create_thread(
-    jabber_program_id: Pubkey,
-    thread_account: Pubkey,
-    fee_payer: Pubkey,
+    program_id: Pubkey,
+    accounts: create_thread::Accounts<Pubkey>,
     params: create_thread::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::CreateThread(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(thread_account, false),
-        AccountMeta::new(fee_payer, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::CreateThread as u8, params)
 }
 
 pub fn set_user_profile(
-    jabber_program_id: Pubkey,
-    user: Pubkey,
-    user_profile_account: Pubkey,
+    program_id: Pubkey,
+    accounts: set_user_profile::Accounts<Pubkey>,
     params: set_user_profile::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::SetUserProfile(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(user, true),
-        AccountMeta::new(user_profile_account, false),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::SetUserProfile as u8, params)
 }
 
 pub fn send_message(
-    jabber_program_id: Pubkey,
-    sender: Pubkey,
-    receiver: Pubkey,
-    thread: Pubkey,
-    receiver_profile: Pubkey,
-    message: Pubkey,
+    program_id: Pubkey,
+    accounts: send_message::Accounts<Pubkey>,
     params: send_message::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::SendMessage(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(sender, true),
-        AccountMeta::new(receiver, false),
-        AccountMeta::new(thread, false),
-        AccountMeta::new_readonly(receiver_profile, false),
-        AccountMeta::new(message, false),
-        AccountMeta::new(Pubkey::from_str(SOL_VAULT).unwrap(), false),
-    ];
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::SendMessage as u8, params)
 }
 
 pub fn create_group_thread(
-    jabber_program_id: Pubkey,
-    group_thread: Pubkey,
-    fee_payer: Pubkey,
+    program_id: Pubkey,
+    accounts: create_group_thread::Accounts<Pubkey>,
     params: create_group_thread::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::CreateGroupThread(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(group_thread, false),
-        AccountMeta::new(fee_payer, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(
+        program_id,
+        JabberInstruction::CreateGroupThread as u8,
+        params,
+    )
 }
 
 pub fn edit_group_thread(
-    jabber_program_id: Pubkey,
-    group_owner: Pubkey,
-    group_thread: Pubkey,
+    program_id: Pubkey,
+    accounts: edit_group_thread::Accounts<Pubkey>,
     params: edit_group_thread::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::EditGroupThread(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(group_owner, true),
-        AccountMeta::new(group_thread, false),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::EditGroupThread as u8, params)
 }
 
 pub fn send_message_group(
-    jabber_program_id: Pubkey,
-    sender: Pubkey,
-    group_thread: Pubkey,
-    destination_wallet: Pubkey,
-    message: Pubkey,
+    program_id: Pubkey,
+    accounts: send_message_group::Accounts<Pubkey>,
     params: send_message_group::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::SendMessageGroup(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(sender, true),
-        AccountMeta::new(group_thread, false),
-        AccountMeta::new(destination_wallet, false),
-        AccountMeta::new(message, false),
-        AccountMeta::new(Pubkey::from_str(SOL_VAULT).unwrap(), false),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(
+        program_id,
+        JabberInstruction::SendMessageGroup as u8,
+        params,
+    )
 }
 
 pub fn add_admin_to_group(
-    jabber_program_id: Pubkey,
-    group_thread: Pubkey,
-    group_owner: Pubkey,
-    params: add_group_admin::Params,
+    program_id: Pubkey,
+    accounts: add_admin_to_group::Accounts<Pubkey>,
+    params: add_admin_to_group::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::AddAdminToGroup(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(group_thread, false),
-        AccountMeta::new(group_owner, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::AddAdminToGroup as u8, params)
 }
 
 pub fn remove_admin_from_group(
-    jabber_program_id: Pubkey,
-    group_thread: Pubkey,
-    group_owner: Pubkey,
-    params: remove_group_admin::Params,
+    program_id: Pubkey,
+    accounts: remove_admin_from_group::Accounts<Pubkey>,
+    params: remove_admin_from_group::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::RemoveAdminGroup(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(group_thread, false),
-        AccountMeta::new(group_owner, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(
+        program_id,
+        JabberInstruction::RemoveAdminFromGroup as u8,
+        params,
+    )
 }
 
 pub fn create_group_index(
-    jabber_program_id: Pubkey,
-    group_thread_index: Pubkey,
-    fee_payer: Pubkey,
+    program_id: Pubkey,
+    accounts: create_group_index::Accounts<Pubkey>,
     params: create_group_index::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::CreateGroupIndex(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(group_thread_index, false),
-        AccountMeta::new(fee_payer, true),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(
+        program_id,
+        JabberInstruction::CreateGroupIndex as u8,
+        params,
+    )
 }
 
 pub fn delete_message(
-    jabber_program_id: Pubkey,
-    sender: Pubkey,
-    receiver: Pubkey,
-    message: Pubkey,
+    program_id: Pubkey,
+    accounts: delete_message::Accounts<Pubkey>,
     params: delete_message::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::DeleteMessage(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(sender, true),
-        AccountMeta::new_readonly(receiver, false),
-        AccountMeta::new(message, false),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(program_id, JabberInstruction::DeleteMessage as u8, params)
 }
 
 pub fn delete_group_message(
-    jabber_program_id: Pubkey,
-    group_thread: Pubkey,
-    message: Pubkey,
-    fee_payer: Pubkey,
+    program_id: Pubkey,
+    accounts: delete_group_message::Accounts<Pubkey>,
     params: delete_group_message::Params,
 ) -> Instruction {
-    let instruction_data = JabberInstruction::DeleteGroupMessage(params);
-    let data = instruction_data.try_to_vec().unwrap();
-    let accounts = vec![
-        AccountMeta::new(fee_payer, true),
-        AccountMeta::new_readonly(group_thread, false),
-        AccountMeta::new(message, false),
-    ];
-
-    Instruction {
-        program_id: jabber_program_id,
-        accounts,
-        data,
-    }
+    accounts.get_instruction(
+        program_id,
+        JabberInstruction::DeleteGroupMessage as u8,
+        params,
+    )
 }

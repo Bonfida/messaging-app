@@ -5,6 +5,7 @@ use crate::utils::order_keys;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
+    clock::Clock,
     entrypoint::ProgramResult,
     program::invoke_signed,
     program_error::ProgramError,
@@ -15,19 +16,22 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub sender_key: Pubkey,
     pub receiver_key: Pubkey,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    thread: &'a AccountInfo<'b>,
-    fee_payer: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub thread: &'a T,
+    pub fee_payer: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         _program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -94,7 +98,9 @@ pub(crate) fn process(
         ]],
     )?;
 
-    let thread = Thread::new(key_1, key_2, bump);
+    let current_time = Clock::get()?.unix_timestamp;
+
+    let thread = Thread::new(key_1, key_2, bump, current_time);
     thread.save(&mut accounts.thread.try_borrow_mut_data()?);
 
     Ok(())

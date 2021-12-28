@@ -24,23 +24,27 @@ use solana_program::{
 use crate::error::JabberError;
 use crate::state::{Message, Profile, Thread};
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub kind: MessageType,
+    pub replies_to: Pubkey,
     pub message: Vec<u8>,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    sender: &'a AccountInfo<'b>,
-    receiver: &'a AccountInfo<'b>,
-    thread: &'a AccountInfo<'b>,
-    receiver_profile: &'a AccountInfo<'b>,
-    message: &'a AccountInfo<'b>,
-    sol_vault: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub sender: &'a T,
+    pub receiver: &'a T,
+    pub thread: &'a T,
+    pub receiver_profile: &'a T,
+    pub message: &'a T,
+    pub sol_vault: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -85,7 +89,11 @@ pub(crate) fn process(
 ) -> ProgramResult {
     let accounts = Accounts::parse(program_id, accounts)?;
 
-    let Params { kind, message } = params;
+    let Params {
+        kind,
+        message,
+        replies_to,
+    } = params;
 
     let mut thread = Thread::from_account_info(accounts.thread)?;
     let thread_key = Thread::create_from_user_keys(
@@ -100,7 +108,7 @@ pub(crate) fn process(
         JabberError::AccountNotDeterministic,
     )?;
 
-    let (message_key, bump) = Message::find_from_keys(
+    let (message_key, bump) = Message::find_key(
         thread.msg_count,
         accounts.sender.key,
         accounts.receiver.key,
@@ -114,7 +122,7 @@ pub(crate) fn process(
     )?;
 
     let now = Clock::get()?.unix_timestamp;
-    let message = Message::new(kind, now, message, *accounts.sender.key);
+    let message = Message::new(kind, now, message, *accounts.sender.key, replies_to);
     let message_len = message.get_len();
     let lamports = Rent::get()?.minimum_balance(message_len);
 
@@ -145,6 +153,7 @@ pub(crate) fn process(
     )?;
 
     message.save(&mut accounts.message.data.borrow_mut());
+
     thread.increment_msg_count();
     thread.save(&mut accounts.thread.data.borrow_mut());
 

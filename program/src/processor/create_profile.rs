@@ -16,21 +16,25 @@ use crate::error::JabberError;
 use crate::state::{Profile, MAX_PROFILE_LEN};
 use crate::utils::check_profile_params;
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
-    pub name: String,
+    pub picture_hash: String,
+    pub display_domain_name: String,
     pub bio: String,
     pub lamports_per_message: u64,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    profile: &'a AccountInfo<'b>,
-    profile_owner: &'a AccountInfo<'b>,
-    fee_payer: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub profile: &'a T,
+    pub profile_owner: &'a T,
+    pub fee_payer: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         _program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -63,12 +67,13 @@ pub(crate) fn process(
     let accounts = Accounts::parse(program_id, accounts)?;
 
     let Params {
-        name,
+        picture_hash,
+        display_domain_name,
         bio,
         lamports_per_message,
     } = params;
 
-    check_profile_params(&name, &bio)?;
+    check_profile_params(&picture_hash, &display_domain_name, &bio)?;
 
     let (profile_key, bump) = Profile::find_from_user_key(accounts.profile_owner.key, program_id);
 
@@ -101,7 +106,13 @@ pub(crate) fn process(
         ]],
     )?;
 
-    let profile = Profile::new(name, bio, lamports_per_message, bump);
+    let profile = Profile::new(
+        picture_hash,
+        display_domain_name,
+        bio,
+        lamports_per_message,
+        bump,
+    );
     profile.save(&mut accounts.profile.try_borrow_mut_data()?);
 
     Ok(())

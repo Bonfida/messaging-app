@@ -223,6 +223,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d696c370c750c948ada61c69a0ee2cbbb9c50b1019ddb86d9317157a99c2cae"
 
 [[package]]
+name = "bonfida-macros"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c1fb7b10374bf085c6d342363eec310e35642acb39d2d90be4df72160e708c2"
+dependencies = [
+ "proc-macro2 1.0.29",
+ "quote 1.0.10",
+ "solana-program",
+ "syn 1.0.80",
+]
+
+[[package]]
+name = "bonfida-utils"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d03f660dd3b729261f1ef15801624d11b3b45ab99aa078e6a399d7e377b616a"
+dependencies = [
+ "bonfida-macros",
+ "borsh",
+ "solana-program",
+]
+
+[[package]]
 name = "borsh"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1358,6 +1381,7 @@ checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 name = "jabber"
 version = "0.0.1"
 dependencies = [
+ "bonfida-utils",
  "borsh",
  "futures",
  "futures-util",
