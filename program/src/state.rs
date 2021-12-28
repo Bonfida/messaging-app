@@ -175,7 +175,8 @@ impl Thread {
         Ok(result)
     }
 
-    pub fn increment_msg_count(&mut self) {
+    pub fn increment_msg_count(&mut self, current_time: i64) {
+        self.last_message_time = current_time;
         self.msg_count += 1;
     }
 }
@@ -365,7 +366,8 @@ impl GroupThread {
         self.serialize(&mut dst).unwrap()
     }
 
-    pub fn increment_msg_count(&mut self) {
+    pub fn increment_msg_count(&mut self, current_time: i64) {
+        self.last_message_time = current_time;
         self.msg_count += 1;
     }
 

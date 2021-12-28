@@ -159,7 +159,7 @@ pub(crate) fn process(
 
     message.save(&mut accounts.message.data.borrow_mut());
 
-    thread.increment_msg_count();
+    thread.increment_msg_count(now);
     thread.save(&mut accounts.thread.data.borrow_mut());
 
     // Transfer lamports if receiver profile exists
