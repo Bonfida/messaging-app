@@ -106,12 +106,12 @@ pub fn check_group_message_type(
 pub fn check_admin_only(
     group_thread: &GroupThread,
     address: &Pubkey,
-    admin_index: Option<usize>,
+    admin_index: Option<u64>,
 ) -> ProgramResult {
     if !group_thread.admin_only || &group_thread.owner == address {
         return Ok(());
     }
-    let admin_index = admin_index.unwrap();
+    let admin_index = admin_index.unwrap() as usize;
     let is_admin = group_thread.admins.get(admin_index).unwrap() == address;
     if !is_admin {
         return Err(JabberError::ChatMuted.into());

@@ -15,7 +15,7 @@ solana-program = "1.7.10"
 num-traits = "0.2"
 thiserror = "1.0.24"
 borsh = "0.9.1"
-bonfida-utils = "0.2.1"
+bonfida-utils = "0.2.2"
 
 [dev-dependencies]
 solana-sdk = "1.7.10"
