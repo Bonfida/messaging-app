@@ -1,4 +1,5 @@
 use crate::{error::JabberError, utils::order_keys};
+use bonfida_utils::BorshSize;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::AccountInfo, clock::UnixTimestamp, entrypoint::ProgramResult,
@@ -40,16 +41,21 @@ pub enum Tag {
     Jabber,
     GroupThread,
     GroupThreadIndex,
+    Subscription,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct Profile {
     pub tag: Tag,
     pub picture_hash: String,
+    pub display_domain_name: String,
     pub bio: String,
     pub lamports_per_message: u64,
     pub bump: u8,
+    pub tips_sent: u32,
+    pub tips_received: u32,
 }
+
 impl Profile {
     pub const SEED: &'static str = "profile";
 
@@ -66,13 +72,22 @@ impl Profile {
         Pubkey::create_program_address(seeds, program_id).unwrap()
     }
 
-    pub fn new(picture_hash: String, bio: String, lamports_per_message: u64, bump: u8) -> Self {
+    pub fn new(
+        picture_hash: String,
+        display_domain_name: String,
+        bio: String,
+        lamports_per_message: u64,
+        bump: u8,
+    ) -> Self {
         Self {
             tag: Tag::Profile,
+            display_domain_name,
             picture_hash,
             bio,
             lamports_per_message,
             bump,
+            tips_sent: 0,
+            tips_received: 0,
         }
     }
 
@@ -90,25 +105,27 @@ impl Profile {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct Thread {
     pub tag: Tag,
     pub msg_count: u32,
     pub user_1: Pubkey,
     pub user_2: Pubkey,
+    pub last_message_time: UnixTimestamp,
     pub bump: u8,
 }
 
 impl Thread {
     pub const SEED: &'static str = "thread";
 
-    pub fn new(user_1: Pubkey, user_2: Pubkey, bump: u8) -> Self {
+    pub fn new(user_1: Pubkey, user_2: Pubkey, bump: u8, last_message_time: UnixTimestamp) -> Self {
         Self {
             tag: Tag::Thread,
             msg_count: 0,
             user_1,
             user_2,
             bump,
+            last_message_time,
         }
     }
 
@@ -163,22 +180,32 @@ impl Thread {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, BorshSize)]
 pub enum MessageType {
-    Encrypted,
-    Unencrypted,
-    EncryptedImage,
-    UnencryptedImage,
+    EncryptedText,
+    UnencryptedText,
+    EncryptedMedia,
+    UnencryptedMedia,
     Deleted,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct Message {
     pub tag: Tag,
+    // Message type
     pub kind: MessageType,
+    // Time at which the message was sent
     pub timestamp: UnixTimestamp,
-    pub msg: Vec<u8>,
+    // Sender of the message
     pub sender: Pubkey,
+    // If the message is a response to another message
+    pub replies_to: Pubkey,
+    // Likes counter
+    pub likes_count: u16,
+    // Dislikes counter
+    pub dislikes_count: u16,
+    // Message sent
+    pub msg: Vec<u8>,
 }
 
 impl Message {
@@ -188,17 +215,26 @@ impl Message {
         1 + 1 + 8 + self.msg.len() + 4 + 32
     }
 
-    pub fn new(kind: MessageType, timestamp: UnixTimestamp, msg: Vec<u8>, sender: Pubkey) -> Self {
+    pub fn new(
+        kind: MessageType,
+        timestamp: UnixTimestamp,
+        msg: Vec<u8>,
+        sender: Pubkey,
+        replies_to: Pubkey,
+    ) -> Self {
         Self {
             tag: Tag::Message,
             kind,
             timestamp,
             msg,
             sender,
+            replies_to,
+            likes_count: 0,
+            dislikes_count: 0,
         }
     }
 
-    pub fn find_from_keys(
+    pub fn find_key(
         index: u32,
         from_key: &Pubkey,
         to_key: &Pubkey,
@@ -218,7 +254,7 @@ impl Message {
         (message_key, bump)
     }
 
-    pub fn create_from_keys(
+    pub fn create_key(
         index: u32,
         from_key: &Pubkey,
         to_key: &Pubkey,
@@ -251,14 +287,20 @@ impl Message {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct GroupThread {
     pub tag: Tag,
     // Owner of the group (fee exempt)
     pub owner: Pubkey,
+    // Time at which the message was sent
+    pub last_message_time: UnixTimestamp,
+    // Destination of the fees
     pub destination_wallet: Pubkey,
+    // Message counter for PDA derivation
     pub msg_count: u32,
+    // Fee per message
     pub lamports_per_message: u64,
+    // PDA derivation bump
     pub bump: u8,
     // Whether users can post media (images, videos and audios)
     pub media_enabled: bool,
@@ -266,6 +308,7 @@ pub struct GroupThread {
     pub admin_only: bool,
     // IPFS hash of the group
     pub group_pic_hash: Option<String>,
+    // Human readable group name
     pub group_name: String,
     // Admins of the group (fee exempt)
     pub admins: Vec<Pubkey>,
@@ -284,6 +327,7 @@ impl GroupThread {
         owner: Pubkey,
         media_enabled: bool,
         admin_only: bool,
+        current_time: i64,
     ) -> Self {
         Self {
             tag: Tag::GroupThread,
@@ -297,15 +341,11 @@ impl GroupThread {
             media_enabled,
             group_pic_hash: None,
             admin_only,
+            last_message_time: current_time,
         }
     }
 
-    pub fn create_from_destination_wallet_and_name(
-        group_name: String,
-        owner: Pubkey,
-        program_id: &Pubkey,
-        bump: u8,
-    ) -> Pubkey {
+    pub fn create_key(group_name: String, owner: Pubkey, program_id: &Pubkey, bump: u8) -> Pubkey {
         let seeds = &[
             GroupThread::SEED.as_bytes(),
             group_name.as_bytes(),
@@ -315,11 +355,7 @@ impl GroupThread {
         Pubkey::create_program_address(seeds, program_id).unwrap()
     }
 
-    pub fn find_from_destination_wallet_and_name(
-        group_name: String,
-        owner: Pubkey,
-        program_id: &Pubkey,
-    ) -> (Pubkey, u8) {
+    pub fn find_key(group_name: String, owner: Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
         let seeds = &[
             GroupThread::SEED.as_bytes(),
             group_name.as_bytes(),
@@ -374,11 +410,14 @@ impl GroupThread {
 }
 
 // To keep track of users' groups
-#[derive(BorshSerialize, BorshDeserialize, Debug, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct GroupThreadIndex {
     pub tag: Tag,
+    // Group thread of the index
     pub group_thread_key: Pubkey,
+    // Owner of the index
     pub owner: Pubkey,
+    // Name of the group
     pub group_name: String,
 }
 
@@ -394,7 +433,7 @@ impl GroupThreadIndex {
         }
     }
 
-    pub fn create_address(
+    pub fn create_key(
         group_name: String,
         group_thread_key: Pubkey,
         owner: Pubkey,
@@ -411,7 +450,7 @@ impl GroupThreadIndex {
         Pubkey::create_program_address(seeds, program_id).unwrap()
     }
 
-    pub fn find_address(
+    pub fn find_key(
         group_name: String,
         group_thread_key: Pubkey,
         owner: Pubkey,
@@ -437,6 +476,66 @@ impl GroupThreadIndex {
             return Err(JabberError::DataTypeMismatch.into());
         }
         let result = GroupThreadIndex::deserialize(&mut data)?;
+        Ok(result)
+    }
+}
+
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct Subscription {
+    // Pubkey of the subscriber
+    pub subscriber: Pubkey,
+    // Pubkey of the person the subscriber subscribed to
+    pub subscribed_to: Pubkey,
+}
+
+impl Subscription {
+    pub const SEED: &'static str = "subscription";
+
+    pub fn new(subscriber: Pubkey, subscribed_to: Pubkey) -> Self {
+        Self {
+            subscriber,
+            subscribed_to,
+        }
+    }
+
+    pub fn create_key(
+        subscriber: &Pubkey,
+        subscribed_to: &Pubkey,
+        program_id: &Pubkey,
+        bump: u8,
+    ) -> Pubkey {
+        let seeds = &[
+            Subscription::SEED.as_bytes(),
+            &subscriber.to_bytes(),
+            &subscribed_to.to_bytes(),
+            &[bump],
+        ];
+        Pubkey::create_program_address(seeds, program_id).unwrap()
+    }
+
+    pub fn find_key(
+        subscriber: &Pubkey,
+        subscribed_to: &Pubkey,
+        program_id: &Pubkey,
+    ) -> (Pubkey, u8) {
+        let seeds = &[
+            Subscription::SEED.as_bytes(),
+            &subscriber.to_bytes(),
+            &subscribed_to.to_bytes(),
+        ];
+        Pubkey::find_program_address(seeds, program_id)
+    }
+
+    pub fn save(&self, mut dst: &mut [u8]) {
+        self.serialize(&mut dst).unwrap()
+    }
+
+    pub fn from_account_info(a: &AccountInfo) -> Result<Subscription, ProgramError> {
+        let mut data = &a.data.borrow() as &[u8];
+        if data[0] != Tag::Subscription as u8 && data[0] != Tag::Uninitialized as u8 {
+            return Err(JabberError::DataTypeMismatch.into());
+        }
+        let result = Subscription::deserialize(&mut data)?;
         Ok(result)
     }
 }

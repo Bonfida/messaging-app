@@ -9,19 +9,23 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub picture_hash: String,
+    pub display_domain_name: String,
     pub bio: String,
     pub lamports_per_message: u64,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    profile_owner: &'a AccountInfo<'b>,
-    profile: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub profile_owner: &'a T,
+    pub profile: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -60,11 +64,12 @@ pub(crate) fn process(
 ) -> ProgramResult {
     let Params {
         picture_hash,
+        display_domain_name,
         bio,
         lamports_per_message,
     } = params;
 
-    check_profile_params(&picture_hash, &bio)?;
+    check_profile_params(&picture_hash, &display_domain_name, &bio)?;
 
     let accounts = Accounts::parse(program_id, accounts)?;
 

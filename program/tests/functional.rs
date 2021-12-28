@@ -1,8 +1,8 @@
 use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
-    add_admin_to_group, add_group_admin, create_group_index, create_group_thread, create_profile,
-    create_thread, delete_group_message, delete_message, edit_group_thread,
-    remove_admin_from_group, remove_group_admin, send_message, send_message_group,
+    add_admin_to_group, add_admin_to_group, create_group_index, create_group_thread,
+    create_profile, create_thread, delete_group_message, delete_message, edit_group_thread,
+    remove_admin_from_group, remove_admin_from_group, send_message, send_message_group,
 };
 use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
 use jabber::state::{Message, Profile, Thread};
@@ -192,7 +192,7 @@ async fn test_jabber() {
         jabber_program_id,
         group_thread,
         prg_test_ctx.payer.pubkey(),
-        add_group_admin::Params {
+        add_admin_to_group::Params {
             admin_address: receiver_account.pubkey(),
         },
     );
@@ -207,7 +207,7 @@ async fn test_jabber() {
         jabber_program_id,
         group_thread,
         prg_test_ctx.payer.pubkey(),
-        remove_group_admin::Params {
+        remove_admin_from_group::Params {
             admin_address: receiver_account.pubkey(),
             admin_index: 1,
         },

@@ -14,20 +14,23 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-#[derive(BorshDeserialize, BorshSerialize, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub group_name: String,
     pub group_thread_key: Pubkey,
     pub owner: Pubkey,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    group_thread_index: &'a AccountInfo<'b>,
-    fee_payer: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub group_thread_index: &'a T,
+    pub fee_payer: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         _program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -63,7 +66,7 @@ pub(crate) fn process(
     } = params;
 
     let (group_thread_index_key, bump) =
-        GroupThreadIndex::find_address(group_name.to_string(), group_thread_key, owner, program_id);
+        GroupThreadIndex::find_key(group_name.to_string(), group_thread_key, owner, program_id);
 
     check_account_key(
         accounts.group_thread_index,

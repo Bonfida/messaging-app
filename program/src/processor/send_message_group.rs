@@ -24,24 +24,28 @@ use solana_program::{
 use crate::error::JabberError;
 use crate::state::{GroupThread, Message};
 
-#[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
+use bonfida_utils::{BorshSize, InstructionsAccount};
+
+#[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub kind: MessageType,
-    pub message: Vec<u8>,
+    pub replies_to: Pubkey,
+    pub admin_index: Option<u64>,
     pub group_name: String,
-    pub admin_index: Option<usize>,
+    pub message: Vec<u8>,
 }
 
-struct Accounts<'a, 'b: 'a> {
-    system_program: &'a AccountInfo<'b>,
-    sender: &'a AccountInfo<'b>,
-    group_thread: &'a AccountInfo<'b>,
-    destination_wallet: &'a AccountInfo<'b>,
-    message: &'a AccountInfo<'b>,
-    sol_vault: &'a AccountInfo<'b>,
+#[derive(InstructionsAccount)]
+pub struct Accounts<'a, T> {
+    pub system_program: &'a T,
+    pub sender: &'a T,
+    pub group_thread: &'a T,
+    pub destination_wallet: &'a T,
+    pub message: &'a T,
+    pub sol_vault: &'a T,
 }
 
-impl<'a, 'b: 'a> Accounts<'a, 'b> {
+impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
@@ -88,11 +92,12 @@ pub(crate) fn process(
         kind,
         message,
         group_name,
+        replies_to,
         admin_index,
     } = params;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
-    let group_thread_key = GroupThread::create_from_destination_wallet_and_name(
+    let group_thread_key = GroupThread::create_key(
         group_name,
         group_thread.owner,
         program_id,
@@ -115,7 +120,7 @@ pub(crate) fn process(
 
     check_group_message_type(&group_thread, &kind)?;
 
-    let (message_key, bump) = Message::find_from_keys(
+    let (message_key, bump) = Message::find_key(
         group_thread.msg_count,
         &group_thread_key,
         &group_thread_key,
@@ -129,7 +134,7 @@ pub(crate) fn process(
     )?;
 
     let now = Clock::get()?.unix_timestamp;
-    let message = Message::new(kind, now, message, *accounts.sender.key);
+    let message = Message::new(kind, now, message, *accounts.sender.key, replies_to);
     let message_len = message.get_len();
     let lamports = Rent::get()?.minimum_balance(message_len);
 
@@ -158,8 +163,10 @@ pub(crate) fn process(
     )?;
 
     message.save(&mut accounts.message.data.borrow_mut());
+
     group_thread.increment_msg_count();
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
+
     let is_fee_exempt =
         GroupThread::is_fee_exempt(&group_thread, *accounts.sender.key, admin_index);
 

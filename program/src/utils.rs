@@ -51,13 +51,21 @@ pub fn check_rent_exempt(account: &AccountInfo) -> ProgramResult {
     Ok(())
 }
 
-pub fn check_profile_params(name: &str, bio: &str) -> ProgramResult {
+pub fn check_profile_params(
+    picture_hash: &str,
+    display_domain_name: &str,
+    bio: &str,
+) -> ProgramResult {
     if bio.len() > MAX_BIO_LENGTH {
         msg!("Bio is too long - max is {}", MAX_BIO_LENGTH);
         return Err(ProgramError::InvalidArgument);
     }
-    if name.len() > MAX_NAME_LENGTH {
-        msg!("Name is too long - max is {}", MAX_NAME_LENGTH);
+    if picture_hash.len() > MAX_NAME_LENGTH {
+        msg!("Hash is too long - max is {}", MAX_NAME_LENGTH);
+        return Err(ProgramError::InvalidArgument);
+    }
+    if display_domain_name.len() > MAX_NAME_LENGTH {
+        msg!("Domain is too long - max is {}", MAX_NAME_LENGTH);
         return Err(ProgramError::InvalidArgument);
     }
     Ok(())
@@ -89,8 +97,8 @@ pub fn check_group_message_type(
     message_type: &MessageType,
 ) -> ProgramResult {
     match (group_thread.media_enabled, message_type) {
-        (false, MessageType::EncryptedImage) => Err(JabberError::NonSupportedMessageType.into()),
-        (false, MessageType::UnencryptedImage) => Err(JabberError::NonSupportedMessageType.into()),
+        (false, MessageType::EncryptedMedia) => Err(JabberError::NonSupportedMessageType.into()),
+        (false, MessageType::UnencryptedMedia) => Err(JabberError::NonSupportedMessageType.into()),
         _ => Ok(()),
     }
 }
