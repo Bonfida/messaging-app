@@ -169,7 +169,7 @@ pub(crate) fn process(
 
     message.save(&mut accounts.message.data.borrow_mut());
 
-    group_thread.increment_msg_count();
+    group_thread.increment_msg_count(now);
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
 
     let is_fee_exempt =
