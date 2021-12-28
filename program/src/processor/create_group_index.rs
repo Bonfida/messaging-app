@@ -19,7 +19,9 @@ use bonfida_utils::{BorshSize, InstructionsAccount};
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
     pub group_name: String,
+    #[cons(writable)]
     pub group_thread_key: Pubkey,
+    #[cons(writable, signer)]
     pub owner: Pubkey,
 }
 

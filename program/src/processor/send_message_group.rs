@@ -38,10 +38,15 @@ pub struct Params {
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
     pub system_program: &'a T,
+    #[cons(writable, signer)]
     pub sender: &'a T,
+    #[cons(writable)]
     pub group_thread: &'a T,
+    #[cons(writable)]
     pub destination_wallet: &'a T,
+    #[cons(writable)]
     pub message: &'a T,
+    #[cons(writable)]
     pub sol_vault: &'a T,
 }
 
