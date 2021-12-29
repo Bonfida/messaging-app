@@ -76,12 +76,15 @@ pub(crate) fn process(
         JabberError::AccountNotDeterministic,
     )?;
 
-    let lamports = Rent::get()?.minimum_balance(MAX_GROUP_THREAD_INDEX);
+    let group_thread_index = GroupThreadIndex::new(group_name.clone(), group_thread_key, owner);
+    let space = group_thread_index.borsh_len();
+
+    let lamports = Rent::get()?.minimum_balance(space);
     let allocate_account = create_account(
         accounts.fee_payer.key,
         &group_thread_index_key,
         lamports,
-        MAX_GROUP_THREAD_INDEX as u64,
+        space as u64,
         program_id,
     );
 
@@ -101,7 +104,6 @@ pub(crate) fn process(
         ]],
     )?;
 
-    let group_thread_index = GroupThreadIndex::new(group_name, group_thread_key, owner);
     group_thread_index.save(&mut accounts.group_thread_index.try_borrow_mut_data()?);
 
     Ok(())
