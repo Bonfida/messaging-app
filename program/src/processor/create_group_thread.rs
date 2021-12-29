@@ -19,6 +19,7 @@ use bonfida_utils::{BorshSize, InstructionsAccount};
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
+    pub visible: bool,
     pub group_name: String,
     pub destination_wallet: Pubkey,
     pub lamports_per_message: u64,
@@ -67,6 +68,7 @@ pub(crate) fn process(
 ) -> ProgramResult {
     let accounts = Accounts::parse(program_id, accounts)?;
     let Params {
+        visible,
         group_name,
         destination_wallet,
         lamports_per_message,
@@ -113,6 +115,7 @@ pub(crate) fn process(
     let current_time = Clock::get()?.unix_timestamp;
 
     let group_thread = GroupThread::new(
+        visible,
         group_name,
         destination_wallet,
         lamports_per_message,

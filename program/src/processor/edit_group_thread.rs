@@ -14,6 +14,7 @@ use bonfida_utils::{BorshSize, InstructionsAccount};
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
+    pub visible: bool,
     pub destination_wallet: Pubkey,
     pub lamports_per_message: u64,
     pub owner: Pubkey,
@@ -85,6 +86,7 @@ pub(crate) fn process(
     let accounts = Accounts::parse(program_id, accounts)?;
 
     let Params {
+        visible,
         destination_wallet,
         lamports_per_message,
         owner,
@@ -103,6 +105,7 @@ pub(crate) fn process(
     group_thread.media_enabled = media_enabled;
     group_thread.group_pic_hash = group_pic_hash;
     group_thread.admin_only = admin_only;
+    group_thread.visible = visible;
 
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
 

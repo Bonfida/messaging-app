@@ -8,27 +8,26 @@ use solana_program::{
 
 pub const MAX_NAME_LENGTH: usize = 100;
 pub const MAX_BIO_LENGTH: usize = 100;
-pub const MAX_MSG_LEN: usize = 1_000;
-
-pub const MAX_PROFILE_LEN: usize = 1 + MAX_NAME_LENGTH + MAX_BIO_LENGTH + 8 + 1;
-
-pub const MAX_THREAD_LEN: usize = 1 + 4 + 32 + 32 + 1;
-
 pub const MAX_GROUP_NAME_LEN: usize = 100;
 pub const MAX_ADMIN_LEN: usize = 10;
 pub const MAX_HASH_LEN: usize = 64;
 
+pub const MAX_PROFILE_LEN: usize =
+    1 + MAX_HASH_LEN + MAX_NAME_LENGTH + MAX_BIO_LENGTH + 8 + 1 + 4 + 4;
+
 pub const MAX_GROUP_THREAD_LEN: usize = 1 // tag
-    + (4 + MAX_GROUP_NAME_LEN) // group_name
-    + 4 // msg_count
+    + 1 // visible
+    + 32 // owner
+    + 8 // last message time
     + 32 // destination_wallet
+    + 4 // msg_count
     + 8 // lamports_per_message
     + 1 // bump
-    + (4 + MAX_ADMIN_LEN * 32) // admins
-    + 32 // owner
     + 1 // media_enabled
+    + 1 // admin_only
     + (4 + MAX_HASH_LEN) // group_pic_hash
-    + 1; // admin_only
+    + (4 + MAX_GROUP_NAME_LEN) // group_name
+    + (4 + MAX_ADMIN_LEN * 32); // admins
 
 pub const MAX_GROUP_THREAD_INDEX: usize = 1 + 4 + MAX_GROUP_NAME_LEN + 32 + 32;
 
@@ -287,6 +286,8 @@ impl Message {
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct GroupThread {
     pub tag: Tag,
+    // Whether to suggest the group in the app
+    pub visible: bool,
     // Owner of the group (fee exempt)
     pub owner: Pubkey,
     // Time at which the message was sent
@@ -316,6 +317,7 @@ impl GroupThread {
 
     #[allow(clippy::too_many_arguments)]
     pub fn new(
+        visible: bool,
         group_name: String,
         destination_wallet: Pubkey,
         lamports_per_message: u64,
@@ -328,6 +330,7 @@ impl GroupThread {
     ) -> Self {
         Self {
             tag: Tag::GroupThread,
+            visible,
             group_name,
             msg_count: 0,
             destination_wallet,
@@ -408,7 +411,7 @@ impl GroupThread {
 }
 
 // To keep track of users' groups
-#[derive(BorshSerialize, BorshDeserialize)]
+#[derive(BorshSerialize, BorshDeserialize, BorshSize)]
 pub struct GroupThreadIndex {
     pub tag: Tag,
     // Group thread of the index

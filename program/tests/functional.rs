@@ -136,6 +136,7 @@ async fn test_jabber() {
             fee_payer: &prg_test_ctx.payer.pubkey(),
         },
         create_group_thread::Params {
+            visible: true,
             group_name: "group_name".to_string(),
             destination_wallet: prg_test_ctx.payer.pubkey(),
             lamports_per_message: 1_000_000,
@@ -158,6 +159,7 @@ async fn test_jabber() {
             group_thread: &group_thread,
         },
         edit_group_thread::Params {
+            visible: false,
             destination_wallet: receiver_account.pubkey(),
             lamports_per_message: 2 * 1_000_000,
             owner: prg_test_ctx.payer.pubkey(),
