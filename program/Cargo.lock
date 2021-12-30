@@ -1395,6 +1395,7 @@ dependencies = [
  "solana-program-test",
  "solana-sdk",
  "spl-associated-token-account",
+ "spl-token",
  "thiserror",
  "tokio",
 ]

@@ -101,7 +101,7 @@ pub(crate) fn process(
     } = params;
 
     let mut thread = Thread::from_account_info(accounts.thread)?;
-    let thread_key = Thread::create_from_user_keys(
+    let thread_key = Thread::create_key(
         accounts.sender.key,
         accounts.receiver.key,
         program_id,

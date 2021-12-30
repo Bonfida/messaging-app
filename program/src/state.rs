@@ -46,11 +46,12 @@ pub enum Tag {
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct Profile {
     pub tag: Tag,
+    pub bump: u8,
     pub picture_hash: String,
     pub display_domain_name: String,
     pub bio: String,
     pub lamports_per_message: u64,
-    pub bump: u8,
+    pub allow_dm: bool,
     pub tips_sent: u32,
     pub tips_received: u32,
 }
@@ -58,7 +59,7 @@ pub struct Profile {
 impl Profile {
     pub const SEED: &'static str = "profile";
 
-    pub fn find_from_user_key(user_key: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
+    pub fn find_key(user_key: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
         let (user_profile_key, bump) = Pubkey::find_program_address(
             &[Profile::SEED.as_bytes(), &user_key.to_bytes()],
             program_id,
@@ -66,7 +67,7 @@ impl Profile {
         (user_profile_key, bump)
     }
 
-    pub fn create_from_keys(user_key: &Pubkey, program_id: &Pubkey, bump: u8) -> Pubkey {
+    pub fn create_key(user_key: &Pubkey, program_id: &Pubkey, bump: u8) -> Pubkey {
         let seeds = &[Profile::SEED.as_bytes(), &user_key.to_bytes(), &[bump]];
         Pubkey::create_program_address(seeds, program_id).unwrap()
     }
@@ -87,6 +88,7 @@ impl Profile {
             bump,
             tips_sent: 0,
             tips_received: 0,
+            allow_dm: true,
         }
     }
 
@@ -128,11 +130,7 @@ impl Thread {
         }
     }
 
-    pub fn find_from_users_keys(
-        user_1: &Pubkey,
-        user_2: &Pubkey,
-        program_id: &Pubkey,
-    ) -> (Pubkey, u8) {
+    pub fn find_key(user_1: &Pubkey, user_2: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
         let (key_1, key_2) = order_keys(user_1, user_2);
         let (thread_key, bump) = Pubkey::find_program_address(
             &[
@@ -145,12 +143,7 @@ impl Thread {
         (thread_key, bump)
     }
 
-    pub fn create_from_user_keys(
-        user_1: &Pubkey,
-        user_2: &Pubkey,
-        program_id: &Pubkey,
-        bump: u8,
-    ) -> Pubkey {
+    pub fn create_key(user_1: &Pubkey, user_2: &Pubkey, program_id: &Pubkey, bump: u8) -> Pubkey {
         let (key_1, key_2) = order_keys(user_1, user_2);
         let seeds = &[
             Thread::SEED.as_bytes(),

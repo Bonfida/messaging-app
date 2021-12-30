@@ -85,6 +85,12 @@ impl PrintProgramError for JabberError {
             JabberError::ChatMuted => {
                 msg!("Error: Chat is muted")
             }
+            JabberError::WrongSplId => {
+                msg!("Error: Wrong SPL token program ID")
+            }
+            JabberError::WrongTipReceiver => {
+                msg!("Error: Wrong tip receiver")
+            }
         }
     }
 }

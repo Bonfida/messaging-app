@@ -42,6 +42,10 @@ pub enum JabberError {
     WrongMessageOwner,
     #[error("Chat is muted")]
     ChatMuted,
+    #[error("Wrong SPL token program ID")]
+    WrongSplId,
+    #[error("Wrong tip receiver")]
+    WrongTipReceiver,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {

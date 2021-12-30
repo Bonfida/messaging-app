@@ -17,6 +17,7 @@ pub mod edit_group_thread;
 pub mod remove_admin_from_group;
 pub mod send_message;
 pub mod send_message_group;
+pub mod send_tip;
 pub mod set_user_profile;
 
 pub struct Processor {}
@@ -105,6 +106,12 @@ impl Processor {
                 let params = delete_group_message::Params::try_from_slice(&instruction_data[1..])
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
                 delete_group_message::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::SendTip => {
+                msg!("Instruction: Send tip");
+                let params = send_tip::Params::try_from_slice(&instruction_data[1..])
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                send_tip::process(program_id, accounts, params)?;
             }
         }
         Ok(())
