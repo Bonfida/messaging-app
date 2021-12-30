@@ -1,5 +1,5 @@
 use crate::error::JabberError;
-use crate::state::{GroupThreadIndex, MAX_GROUP_THREAD_INDEX};
+use crate::state::GroupThreadIndex;
 use crate::utils::check_account_key;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{

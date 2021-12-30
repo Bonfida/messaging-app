@@ -78,7 +78,7 @@ pub(crate) fn process(
 
     check_profile_params(&picture_hash, &display_domain_name, &bio)?;
 
-    let (profile_key, bump) = Profile::find_from_user_key(accounts.profile_owner.key, program_id);
+    let (profile_key, bump) = Profile::find_key(accounts.profile_owner.key, program_id);
 
     check_account_key(
         accounts.profile,

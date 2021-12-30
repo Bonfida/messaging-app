@@ -67,7 +67,7 @@ pub(crate) fn process(
         receiver_key,
     } = params;
 
-    let (thread_key, bump) = Thread::find_from_users_keys(&receiver_key, &sender_key, program_id);
+    let (thread_key, bump) = Thread::find_key(&receiver_key, &sender_key, program_id);
 
     check_account_key(
         accounts.thread,

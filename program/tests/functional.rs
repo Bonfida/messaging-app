@@ -2,17 +2,19 @@ use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
     add_admin_to_group, create_group_index, create_group_thread, create_profile, create_thread,
     delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
-    send_message_group,
+    send_message_group, send_tip, set_user_profile,
 };
 use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
 use jabber::state::{Message, Profile, Thread};
 use jabber::utils::SOL_VAULT;
-use solana_program::{pubkey::Pubkey, system_program};
+use solana_program::{pubkey::Pubkey, rent::Rent, system_instruction, system_program};
 use solana_program_test::{processor, ProgramTest};
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signer;
-use std::str::FromStr;
+use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
+use spl_token::instruction::{initialize_mint, mint_to};
 
+use std::str::FromStr;
 pub mod common;
 
 use crate::common::utils::sign_send_instructions;
@@ -32,8 +34,7 @@ async fn test_jabber() {
     let receiver_account = Keypair::new();
 
     // Create profile
-    let (profile_account, _) =
-        Profile::find_from_user_key(&receiver_account.pubkey(), &jabber_program_id);
+    let (profile_account, _) = Profile::find_key(&receiver_account.pubkey(), &jabber_program_id);
 
     let create_profile_ix = create_profile(
         jabber_program_id,
@@ -59,8 +60,32 @@ async fn test_jabber() {
     .await
     .unwrap();
 
+    // Set user profile
+
+    let set_profile_ix = set_user_profile(
+        jabber_program_id,
+        set_user_profile::Accounts {
+            profile_owner: &receiver_account.pubkey(),
+            profile: &profile_account,
+        },
+        set_user_profile::Params {
+            picture_hash: "Receiver".to_string(),
+            display_domain_name: "Test".to_string(),
+            bio: "I receive message".to_string(),
+            lamports_per_message: 2_000_000_000,
+            allow_dm: false,
+        },
+    );
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![set_profile_ix],
+        vec![&receiver_account],
+    )
+    .await
+    .unwrap();
+
     // Create thread
-    let (thread_account, _) = Thread::find_from_users_keys(
+    let (thread_account, _) = Thread::find_key(
         &receiver_account.pubkey(),
         &prg_test_ctx.payer.pubkey(),
         &jabber_program_id,
@@ -316,6 +341,112 @@ async fn test_jabber() {
     );
 
     sign_send_instructions(&mut prg_test_ctx, vec![delete_group_message_ix], vec![])
+        .await
+        .unwrap();
+
+    // Sent tip
+
+    let mint = Keypair::new();
+    let init_mint_ix = vec![
+        system_instruction::create_account(
+            &prg_test_ctx.payer.pubkey(),
+            &mint.pubkey(),
+            Rent::default().minimum_balance(82),
+            82,
+            &spl_token::id(),
+        ),
+        initialize_mint(
+            &spl_token::id(),
+            &mint.pubkey(),
+            &prg_test_ctx.payer.pubkey(),
+            None,
+            6,
+        )
+        .unwrap(),
+    ];
+    sign_send_instructions(&mut prg_test_ctx, init_mint_ix, vec![&mint])
+        .await
+        .unwrap();
+
+    let create_sender_token_acc_ix = create_associated_token_account(
+        &prg_test_ctx.payer.pubkey(),
+        &prg_test_ctx.payer.pubkey(),
+        &mint.pubkey(),
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![create_sender_token_acc_ix], vec![])
+        .await
+        .unwrap();
+
+    let create_receiver_token_acc_ix = create_associated_token_account(
+        &prg_test_ctx.payer.pubkey(),
+        &receiver_account.pubkey(),
+        &mint.pubkey(),
+    );
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![create_receiver_token_acc_ix],
+        vec![],
+    )
+    .await
+    .unwrap();
+
+    let sender_token_acc =
+        get_associated_token_address(&prg_test_ctx.payer.pubkey(), &mint.pubkey());
+    let receiver_token_acc =
+        get_associated_token_address(&receiver_account.pubkey(), &mint.pubkey());
+
+    let mint_ix = mint_to(
+        &spl_token::ID,
+        &mint.pubkey(),
+        &sender_token_acc,
+        &prg_test_ctx.payer.pubkey(),
+        &[],
+        10_000 * 1_000_000,
+    )
+    .unwrap();
+
+    sign_send_instructions(&mut prg_test_ctx, vec![mint_ix], vec![])
+        .await
+        .unwrap();
+
+    let (sender_profile, _) = Profile::find_key(&prg_test_ctx.payer.pubkey(), &jabber_program_id);
+
+    let create_sender_profile_ix = create_profile(
+        jabber_program_id,
+        create_profile::Accounts {
+            system_program: &system_program::ID,
+            profile: &sender_profile,
+            profile_owner: &prg_test_ctx.payer.pubkey(),
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+        },
+        create_profile::Params {
+            picture_hash: "hash".to_string(),
+            display_domain_name: "Domain".to_string(),
+            bio: "my bio".to_string(),
+            lamports_per_message: 0,
+        },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![create_sender_profile_ix], vec![])
+        .await
+        .unwrap();
+
+    let tip_ix = send_tip(
+        jabber_program_id,
+        send_tip::Accounts {
+            spl_token_program: &spl_token::ID,
+            sender_profile: &sender_profile,
+            sender: &prg_test_ctx.payer.pubkey(),
+            receiver_profile: &profile_account,
+            receiver: &receiver_account.pubkey(),
+            token_source: &sender_token_acc,
+            token_destination: &receiver_token_acc,
+        },
+        send_tip::Params {
+            amount: 10 * 1_000_000,
+        },
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![tip_ix], vec![])
         .await
         .unwrap();
 }

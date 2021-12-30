@@ -1,7 +1,7 @@
 pub use crate::processor::{
     add_admin_to_group, create_group_index, create_group_thread, create_profile, create_thread,
     delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
-    send_message_group, set_user_profile,
+    send_message_group, send_tip, set_user_profile,
 };
 
 use bonfida_utils::InstructionsAccount;
@@ -130,6 +130,8 @@ pub enum JabberInstruction {
     // | 1     | ✅        | ❌      | Message account |
     // | 2     | ✅        | ✅      | Fee payer       |
     DeleteGroupMessage,
+
+    SendTip,
 }
 
 pub fn create_profile(
@@ -246,4 +248,12 @@ pub fn delete_group_message(
         JabberInstruction::DeleteGroupMessage as u8,
         params,
     )
+}
+
+pub fn send_tip(
+    program_id: Pubkey,
+    accounts: send_tip::Accounts<Pubkey>,
+    params: send_tip::Params,
+) -> Instruction {
+    accounts.get_instruction(program_id, JabberInstruction::SendTip as u8, params)
 }

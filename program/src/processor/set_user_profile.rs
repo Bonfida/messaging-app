@@ -17,6 +17,7 @@ pub struct Params {
     pub display_domain_name: String,
     pub bio: String,
     pub lamports_per_message: u64,
+    pub allow_dm: bool,
 }
 
 #[derive(InstructionsAccount)]
@@ -47,7 +48,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         let profile = Profile::from_account_info(accounts.profile)?;
 
         let expected_user_profile_key =
-            Profile::create_from_keys(accounts.profile_owner.key, program_id, profile.bump);
+            Profile::create_key(accounts.profile_owner.key, program_id, profile.bump);
 
         check_account_key(
             accounts.profile,
@@ -69,6 +70,7 @@ pub(crate) fn process(
         display_domain_name,
         bio,
         lamports_per_message,
+        allow_dm,
     } = params;
 
     check_profile_params(&picture_hash, &display_domain_name, &bio)?;
@@ -80,6 +82,7 @@ pub(crate) fn process(
     profile.lamports_per_message = lamports_per_message;
     profile.bio = bio;
     profile.picture_hash = picture_hash;
+    profile.allow_dm = allow_dm;
 
     profile.save(&mut accounts.profile.data.borrow_mut());
 
