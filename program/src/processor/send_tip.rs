@@ -1,4 +1,4 @@
-use crate::utils::{check_account_key, check_account_owner, check_rent_exempt, check_signer};
+use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
