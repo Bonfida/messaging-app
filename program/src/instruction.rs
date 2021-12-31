@@ -3,137 +3,111 @@ pub use crate::processor::{
     delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
     send_message_group, send_tip, set_user_profile,
 };
-
 use bonfida_utils::InstructionsAccount;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{instruction::Instruction, pubkey::Pubkey};
-
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum JabberInstruction {
-    // 0
-    // Accounts expected by this insctruction
-    //
-    // | Index | Writable | Signer | Description           |
-    // |-------|----------|--------|-----------------------|
-    // | 0     | ❌        | ❌      | System program        |
-    // | 1     | ✅        | ❌      | Profile account       |
-    // | 2     | ✅        | ✅      | Profile account owner |
-    // | 3     | ✅        | ✅      | Fee payer             |
+    /// 
+    /// | Index | Writable | Signer | Description                |
+    /// | ------------------------------------------------------ |
+    /// | 0     | ❌        | ❌      | The system program account |
+    /// | 1     | ✅        | ❌      | The profile account        |
+    /// | 2     | ✅        | ✅      | The profile owner account  |
+    /// | 3     | ✅        | ✅      | The fee payer account      |
     CreateProfile,
-    // 1
-    // | Index | Writable | Signer | Description    |
-    // |-------|----------|--------|----------------|
-    // | 0     | ❌        | ❌      | System program |
-    // | 1     | ✅        | ❌      | Thread account |
-    // | 2     | ✅        | ✅      | Fee payer      |
+    /// 
+    /// | Index | Writable | Signer | Description                |
+    /// | ------------------------------------------------------ |
+    /// | 0     | ❌        | ❌      | The system program account |
+    /// | 1     | ✅        | ❌      | The thread account         |
+    /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateThread,
-    // 2
-    //
-    // Accounts expected by this instruction
-    //
-    // | Index 	| Writable 	| Signer 	| Description          	|
-    // |-------	|----------	|--------	|----------------------	|
-    // | 0     	| ✅        	| ✅      	| User                 	|
-    // | 1     	| ✅        	| ❌      	| User profile account 	|
+    /// 
+    /// | Index | Writable | Signer | Description               |
+    /// | ----------------------------------------------------- |
+    /// | 0     | ✅        | ✅      | The profile owner account |
+    /// | 1     | ✅        | ❌      | The profile account       |
     SetUserProfile,
-    // 3
-    //
-    // Accounts expected by this instruction
-    //
-    // | Index 	| Writable 	| Signer 	| Description              	|
-    // |-------	|----------	|--------	|--------------------------	|
-    // | 0     	| ❌        	| ❌      	| System program           	|
-    // | 1     	| ✅        	| ✅      	| Sender account           	|
-    // | 2     	| ✅        	| ❌      	| Receiver account         	|
-    // | 3     	| ✅        	| ❌      	| Thread account         	|
-    // | 4     	| ❌       	| ❌      	| Receiver profile        	|
-    // | 5     	| ✅        	| ❌      	| Message account          	|
-    // | 6     	| ✅        	| ❌      	| SOL vault account       	|
+    /// 
+    /// | Index | Writable | Signer | Description                  |
+    /// | -------------------------------------------------------- |
+    /// | 0     | ❌        | ❌      | The system program account   |
+    /// | 1     | ✅        | ✅      | The sender account           |
+    /// | 2     | ✅        | ❌      | The receiver account         |
+    /// | 3     | ✅        | ❌      | The thread account           |
+    /// | 4     | ❌        | ❌      | The receiver profile account |
+    /// | 5     | ✅        | ❌      | The message account          |
+    /// | 6     | ✅        | ❌      | The SOL vault account        |
     SendMessage,
-    // 4
-    //
-    // Create group thread
-    //
-    // | Index | Writable | Signer | Description          |
-    // |-------|----------|--------|----------------------|
-    // | 0     | ❌        | ❌      | System program       |
-    // | 1     | ✅        | ❌      | Group thread account |
-    // | 2     | ✅        | ✅      | Fee payer            |
+    /// 
+    /// | Index | Writable | Signer | Description                |
+    /// | ------------------------------------------------------ |
+    /// | 0     | ❌        | ❌      | The system program account |
+    /// | 1     | ✅        | ❌      | The group thread account   |
+    /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateGroupThread,
-    // 5
-    //
-    // Edit group thread
-    //
-    // | Index | Writable | Signer | Description          |
-    // |-------|----------|--------|----------------------|
-    // | 0     | ✅        | ✅      | Group owner          |
-    // | 1     | ✅        | ❌      | Group thread account |
+    /// 
+    /// | Index | Writable | Signer | Description              |
+    /// | ---------------------------------------------------- |
+    /// | 0     | ✅        | ✅      | The group owner account  |
+    /// | 1     | ✅        | ❌      | The group thread account |
     EditGroupThread,
-    // 6
-    //
-    // Send message to group
-    //
-    // | Index | Writable | Signer | Description          |
-    // |-------|----------|--------|----------------------|
-    // | 0     | ❌        | ❌      | System program       |
-    // | 1     | ✅        | ✅      | Sender account       |
-    // | 2     | ✅        | ❌      | Group thread account |
-    // | 3     | ✅        | ❌      | Destination wallet   |
-    // | 4     | ✅        | ❌      | Message account      |
-    // | 5     | ✅        | ❌      | SOL vault            |
+    /// 
+    /// | Index | Writable | Signer | Description                |
+    /// | ------------------------------------------------------ |
+    /// | 0     | ❌        | ❌      | The system program account |
+    /// | 1     | ✅        | ✅      | The sender account         |
+    /// | 2     | ✅        | ❌      | The group thread account   |
+    /// | 3     | ✅        | ❌      | The destination wallet     |
+    /// | 4     | ✅        | ❌      | The message account        |
+    /// | 5     | ✅        | ❌      | The SOL vault account      |
     SendMessageGroup,
-    // 7
-    //
-    // Add admin to group
-    //
-    // | Index | Writable | Signer | Description          |
-    // |-------|----------|--------|----------------------|
-    // | 0     | ✅        | ❌      | Group thread account |
-    // | 1     | ✅        | ✅      | Group owner          |
+    /// 
+    /// | Index | Writable | Signer | Description              |
+    /// | ---------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The group thread account |
+    /// | 1     | ✅        | ✅      | The group owner account  |
     AddAdminToGroup,
-    // 8
-    //
-    // Remove admin from group
-    //
-    // | Index | Writable | Signer | Description          |
-    // |-------|----------|--------|----------------------|
-    // | 0     | ✅        | ❌      | Group thread account |
-    // | 1     | ✅        | ✅      | Group owner          |
+    /// 
+    /// | Index | Writable | Signer | Description              |
+    /// | ---------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The group thread account |
+    /// | 1     | ✅        | ✅      | The group owner account  |
     RemoveAdminFromGroup,
-    // 9
-    //
-    // Create thread index account
-    //
-    // | Index | Writable | Signer | Description        |
-    // |-------|----------|--------|--------------------|
-    // | 0     | ❌        | ❌      | System program     |
-    // | 1     | ✅        | ❌      | Group thread index |
-    // | 2     | ✅        | ✅      | Fee payer          |
+    /// 
+    /// | Index | Writable | Signer | Description                    |
+    /// | ---------------------------------------------------------- |
+    /// | 0     | ❌        | ❌      | The system program account     |
+    /// | 1     | ✅        | ❌      | The group thread index account |
+    /// | 2     | ✅        | ✅      | The fee payer account          |
     CreateGroupIndex,
-    // 10
-    //
-    // Delete a message
-    //
-    // | Index | Writable | Signer | Description     |
-    // |-------|----------|--------|-----------------|
-    // | 0     | ✅        | ✅      | Sender          |
-    // | 1     | ❌        | ❌      | Receiver        |
-    // | 2     | ✅        | ❌      | Message account |
+    /// 
+    /// | Index | Writable | Signer | Description                  |
+    /// | -------------------------------------------------------- |
+    /// | 0     | ✅        | ✅      | The message sender account   |
+    /// | 1     | ❌        | ❌      | The message receiver account |
+    /// | 2     | ✅        | ❌      | The message account          |
     DeleteMessage,
-    // 11
-    //
-    // Delete a group message
-    //
-    // | Index | Writable | Signer | Description     |
-    // |-------|----------|--------|-----------------|
-    // | 0     | ❌        | ❌      | Group thread    |
-    // | 1     | ✅        | ❌      | Message account |
-    // | 2     | ✅        | ✅      | Fee payer       |
+    /// 
+    /// | Index | Writable | Signer | Description              |
+    /// | ---------------------------------------------------- |
+    /// | 0     | ❌        | ❌      | The group thread account |
+    /// | 1     | ✅        | ❌      | The message account      |
+    /// | 2     | ✅        | ✅      | The fee payer account    |
     DeleteGroupMessage,
-
+    /// 
+    /// | Index | Writable | Signer | Description                      |
+    /// | ------------------------------------------------------------ |
+    /// | 0     | ❌        | ❌      | The SPL token program ID         |
+    /// | 1     | ✅        | ❌      | The tip sender profile account   |
+    /// | 2     | ✅        | ✅      | The tip sender account           |
+    /// | 3     | ✅        | ❌      | The tip receiver profile account |
+    /// | 4     | ❌        | ❌      | The tip receiver account         |
+    /// | 5     | ✅        | ❌      | The token source account         |
+    /// | 6     | ✅        | ❌      | The token destination account    |
     SendTip,
 }
-
 pub fn create_profile(
     program_id: Pubkey,
     accounts: create_profile::Accounts<Pubkey>,
@@ -141,7 +115,6 @@ pub fn create_profile(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::CreateProfile as u8, params)
 }
-
 pub fn create_thread(
     program_id: Pubkey,
     accounts: create_thread::Accounts<Pubkey>,
@@ -149,7 +122,6 @@ pub fn create_thread(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::CreateThread as u8, params)
 }
-
 pub fn set_user_profile(
     program_id: Pubkey,
     accounts: set_user_profile::Accounts<Pubkey>,
@@ -157,7 +129,6 @@ pub fn set_user_profile(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::SetUserProfile as u8, params)
 }
-
 pub fn send_message(
     program_id: Pubkey,
     accounts: send_message::Accounts<Pubkey>,
@@ -165,7 +136,6 @@ pub fn send_message(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::SendMessage as u8, params)
 }
-
 pub fn create_group_thread(
     program_id: Pubkey,
     accounts: create_group_thread::Accounts<Pubkey>,
@@ -177,7 +147,6 @@ pub fn create_group_thread(
         params,
     )
 }
-
 pub fn edit_group_thread(
     program_id: Pubkey,
     accounts: edit_group_thread::Accounts<Pubkey>,
@@ -185,7 +154,6 @@ pub fn edit_group_thread(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::EditGroupThread as u8, params)
 }
-
 pub fn send_message_group(
     program_id: Pubkey,
     accounts: send_message_group::Accounts<Pubkey>,
@@ -197,7 +165,6 @@ pub fn send_message_group(
         params,
     )
 }
-
 pub fn add_admin_to_group(
     program_id: Pubkey,
     accounts: add_admin_to_group::Accounts<Pubkey>,
@@ -205,7 +172,6 @@ pub fn add_admin_to_group(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::AddAdminToGroup as u8, params)
 }
-
 pub fn remove_admin_from_group(
     program_id: Pubkey,
     accounts: remove_admin_from_group::Accounts<Pubkey>,
@@ -217,7 +183,6 @@ pub fn remove_admin_from_group(
         params,
     )
 }
-
 pub fn create_group_index(
     program_id: Pubkey,
     accounts: create_group_index::Accounts<Pubkey>,
@@ -229,7 +194,6 @@ pub fn create_group_index(
         params,
     )
 }
-
 pub fn delete_message(
     program_id: Pubkey,
     accounts: delete_message::Accounts<Pubkey>,
@@ -237,7 +201,6 @@ pub fn delete_message(
 ) -> Instruction {
     accounts.get_instruction(program_id, JabberInstruction::DeleteMessage as u8, params)
 }
-
 pub fn delete_group_message(
     program_id: Pubkey,
     accounts: delete_group_message::Accounts<Pubkey>,
@@ -249,7 +212,6 @@ pub fn delete_group_message(
         params,
     )
 }
-
 pub fn send_tip(
     program_id: Pubkey,
     accounts: send_tip::Accounts<Pubkey>,

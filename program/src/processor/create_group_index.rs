@@ -25,9 +25,14 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The system program account
     pub system_program: &'a T,
+
+    /// The group thread index account
     #[cons(writable)]
     pub group_thread_index: &'a T,
+
+    /// The fee payer account
     #[cons(writable, signer)]
     pub fee_payer: &'a T,
 }

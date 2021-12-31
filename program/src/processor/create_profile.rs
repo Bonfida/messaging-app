@@ -28,11 +28,18 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The system program account
     pub system_program: &'a T,
+
+    /// The profile account
     #[cons(writable)]
     pub profile: &'a T,
+
+    /// The profile owner account
     #[cons(writable, signer)]
     pub profile_owner: &'a T,
+
+    /// The fee payer account
     #[cons(writable, signer)]
     pub fee_payer: &'a T,
 }
