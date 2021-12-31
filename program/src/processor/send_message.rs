@@ -171,6 +171,10 @@ pub(crate) fn process(
         )?;
         let profile = Profile::from_account_info(accounts.receiver_profile)?;
 
+        if !profile.allow_dm {
+            return Err(JabberError::DmClosed.into());
+        }
+
         let transfer_fee = (profile.lamports_per_message * FEE) / 100;
         let transfer_amount = profile.lamports_per_message - transfer_fee;
 

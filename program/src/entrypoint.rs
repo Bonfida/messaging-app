@@ -91,6 +91,9 @@ impl PrintProgramError for JabberError {
             JabberError::WrongTipReceiver => {
                 msg!("Error: Wrong tip receiver")
             }
+            JabberError::DmClosed => {
+                msg!("Error: Receiver does not allow direct messages")
+            }
         }
     }
 }

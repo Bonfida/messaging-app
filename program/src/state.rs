@@ -13,16 +13,16 @@ pub const MAX_ADMIN_LEN: usize = 10;
 pub const MAX_HASH_LEN: usize = 64;
 
 pub const MAX_PROFILE_LEN: usize =
-    1 + MAX_HASH_LEN + MAX_NAME_LENGTH + MAX_BIO_LENGTH + 8 + 1 + 4 + 4;
+    1 + 1 + MAX_HASH_LEN + MAX_NAME_LENGTH + MAX_BIO_LENGTH + 8 + 1 + 4 + 4;
 
 pub const MAX_GROUP_THREAD_LEN: usize = 1 // tag
+    + 1 // bump
     + 1 // visible
     + 32 // owner
     + 8 // last message time
     + 32 // destination_wallet
     + 4 // msg_count
     + 8 // lamports_per_message
-    + 1 // bump
     + 1 // media_enabled
     + 1 // admin_only
     + (4 + MAX_HASH_LEN) // group_pic_hash
@@ -279,6 +279,8 @@ impl Message {
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct GroupThread {
     pub tag: Tag,
+    // PDA derivation bump
+    pub bump: u8,
     // Whether to suggest the group in the app
     pub visible: bool,
     // Owner of the group (fee exempt)
@@ -291,8 +293,6 @@ pub struct GroupThread {
     pub msg_count: u32,
     // Fee per message
     pub lamports_per_message: u64,
-    // PDA derivation bump
-    pub bump: u8,
     // Whether users can post media (images, videos and audios)
     pub media_enabled: bool,
     // Whether admins only can post messages

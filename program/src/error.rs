@@ -46,6 +46,8 @@ pub enum JabberError {
     WrongSplId,
     #[error("Wrong tip receiver")]
     WrongTipReceiver,
+    #[error("Receiver does not allow direct messages")]
+    DmClosed,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {
