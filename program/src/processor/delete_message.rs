@@ -18,9 +18,14 @@ pub struct Params {
 }
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The message sender account
     #[cons(writable, signer)]
     pub sender: &'a T,
+
+    /// The message receiver account
     pub receiver: &'a T,
+
+    /// The message account
     #[cons(writable)]
     pub message: &'a T,
 }

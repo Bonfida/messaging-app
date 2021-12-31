@@ -22,16 +22,29 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The SPL token program ID
     pub spl_token_program: &'a T,
+
+    /// The tip sender profile account
     #[cons(writable)]
     pub sender_profile: &'a T,
+
+    /// The tip sender account
     #[cons(writable, signer)]
     pub sender: &'a T,
+
+    /// The tip receiver profile account
     #[cons(writable)]
     pub receiver_profile: &'a T,
+
+    /// The tip receiver account
     pub receiver: &'a T,
+
+    /// The token source account
     #[cons(writable)]
     pub token_source: &'a T,
+
+    /// The token destination account
     #[cons(writable)]
     pub token_destination: &'a T,
 }

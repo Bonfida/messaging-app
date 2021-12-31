@@ -22,8 +22,11 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The profile owner account
     #[cons(writable, signer)]
     pub profile_owner: &'a T,
+
+    /// The profile account
     #[cons(writable)]
     pub profile: &'a T,
 }

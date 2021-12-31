@@ -18,8 +18,11 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The group thread account
     #[cons(writable)]
     pub group_thread: &'a T,
+
+    /// The group owner account
     #[cons(writable, signer)]
     pub group_owner: &'a T,
 }

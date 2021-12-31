@@ -35,16 +35,29 @@ pub struct Params {
 
 #[derive(InstructionsAccount)]
 pub struct Accounts<'a, T> {
+    /// The system program account
     pub system_program: &'a T,
+
+    /// The sender account
     #[cons(writable, signer)]
     pub sender: &'a T,
+
+    /// The receiver account
     #[cons(writable)]
     pub receiver: &'a T,
+
+    /// The thread account
     #[cons(writable)]
     pub thread: &'a T,
+
+    /// The receiver profile account
     pub receiver_profile: &'a T,
+
+    /// The message account
     #[cons(writable)]
     pub message: &'a T,
+
+    /// The SOL vault account
     #[cons(writable)]
     pub sol_vault: &'a T,
 }
