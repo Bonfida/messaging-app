@@ -73,7 +73,7 @@ async fn test_jabber() {
             display_domain_name: "Test".to_string(),
             bio: "I receive message".to_string(),
             lamports_per_message: 2_000_000_000,
-            allow_dm: false,
+            allow_dm: true,
         },
     );
     sign_send_instructions(
