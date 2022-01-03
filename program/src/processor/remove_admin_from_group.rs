@@ -1,3 +1,4 @@
+//! Remove an admin from the group
 use crate::error::JabberError;
 use crate::state::GroupThread;
 use crate::utils::{check_account_key, check_account_owner, check_signer};

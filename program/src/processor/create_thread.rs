@@ -1,3 +1,4 @@
+//! Create a DM thread between two users
 use crate::error::JabberError;
 use crate::state::Thread;
 use crate::utils::check_account_key;

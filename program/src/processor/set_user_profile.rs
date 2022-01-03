@@ -1,3 +1,4 @@
+//! Edit a Jabber profile information
 use crate::error::JabberError;
 use crate::state::Profile;
 use crate::utils::{check_account_key, check_account_owner, check_profile_params, check_signer};

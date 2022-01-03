@@ -1,3 +1,4 @@
+//! Create a group thread
 use crate::error::JabberError;
 use crate::state::{GroupThread, MAX_GROUP_THREAD_LEN};
 use crate::utils::{check_account_key, check_group_thread_params};
