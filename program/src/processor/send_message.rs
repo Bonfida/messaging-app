@@ -1,3 +1,4 @@
+//! Send a message (DM)
 use std::str::FromStr;
 
 use crate::{

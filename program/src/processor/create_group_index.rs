@@ -1,3 +1,4 @@
+//! Create a group index for a user
 use crate::error::JabberError;
 use crate::state::GroupThreadIndex;
 use crate::utils::check_account_key;

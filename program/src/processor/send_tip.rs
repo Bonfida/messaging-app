@@ -1,3 +1,4 @@
+//! Send a tip
 use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{

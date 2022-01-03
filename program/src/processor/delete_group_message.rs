@@ -1,3 +1,4 @@
+//! Delete a message sent to a group
 use crate::{
     state::GroupThread,
     utils::{check_account_key, check_account_owner, check_keys, check_names, check_signer},

@@ -1,3 +1,4 @@
+//! Create a user Jabber profile
 use crate::utils::{check_account_key, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{

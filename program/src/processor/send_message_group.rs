@@ -1,3 +1,4 @@
+//! Send a message to a group
 use std::str::FromStr;
 
 use crate::{
