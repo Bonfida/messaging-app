@@ -12,6 +12,7 @@ export enum Tag {
   Jabber = 4,
   GroupThread = 5,
   GroupThreadIndex = 6,
+  Subscription = 7,
 }
 
 export enum MessageType {
@@ -450,5 +451,51 @@ export class GroupThreadIndex {
     }
 
     return this.deserialize(accountInfo.data);
+  }
+}
+
+export class Subscription {
+  tag: number;
+  subscriber: Uint8Array;
+  subscribedTo: Uint8Array;
+
+  static schema: Schema = new Map([
+    [
+      Subscription,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["subscriber", [32]],
+          ["subscribedTo", [32]],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { subscriber: Uint8Array; subscribedTo: Uint8Array }) {
+    this.tag = Tag.Subscription;
+    this.subscriber = obj.subscriber;
+    this.subscribedTo = obj.subscribedTo;
+  }
+
+  static deserialize(data: Buffer) {
+    return deserializeUnchecked(this.schema, Subscription, data);
+  }
+
+  static generateSeeds(subscriber: PublicKey, subscribedTo: PublicKey) {
+    return [
+      Buffer.from("subscription"),
+      subscriber.toBuffer(),
+      subscribedTo.toBuffer(),
+    ];
+  }
+
+  static async getKey(subscriber: PublicKey, subscribedTo: PublicKey) {
+    const [subscriptionKey] = await PublicKey.findProgramAddress(
+      Subscription.generateSeeds(subscriber, subscribedTo),
+      JABBER_ID
+    );
+    return subscriptionKey;
   }
 }

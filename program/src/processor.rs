@@ -10,6 +10,7 @@ pub mod add_admin_to_group;
 pub mod create_group_index;
 pub mod create_group_thread;
 pub mod create_profile;
+pub mod create_subscription;
 pub mod create_thread;
 pub mod delete_group_message;
 pub mod delete_message;
@@ -112,6 +113,12 @@ impl Processor {
                 let params = send_tip::Params::try_from_slice(&instruction_data[1..])
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
                 send_tip::process(program_id, accounts, params)?;
+            }
+            JabberInstruction::CreateSubscription => {
+                msg!("Instruction: Create subscription");
+                let params = create_subscription::Params::try_from_slice(&instruction_data[1..])
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                create_subscription::process(program_id, accounts, params)?;
             }
         }
         Ok(())

@@ -1,10 +1,10 @@
 use jabber::entrypoint::process_instruction;
 use jabber::instruction::{
-    add_admin_to_group, create_group_index, create_group_thread, create_profile, create_thread,
-    delete_group_message, delete_message, edit_group_thread, remove_admin_from_group, send_message,
-    send_message_group, send_tip, set_user_profile,
+    add_admin_to_group, create_group_index, create_group_thread, create_profile,
+    create_subscription, create_thread, delete_group_message, delete_message, edit_group_thread,
+    remove_admin_from_group, send_message, send_message_group, send_tip, set_user_profile,
 };
-use jabber::state::{GroupThread, GroupThreadIndex, MessageType};
+use jabber::state::{GroupThread, GroupThreadIndex, MessageType, Subscription};
 use jabber::state::{Message, Profile, Thread};
 use jabber::utils::SOL_VAULT;
 use solana_program::{pubkey::Pubkey, rent::Rent, system_instruction, system_program};
@@ -447,6 +447,30 @@ async fn test_jabber() {
         },
     );
     sign_send_instructions(&mut prg_test_ctx, vec![tip_ix], vec![])
+        .await
+        .unwrap();
+
+    //
+    // Create subscription
+    //
+    let subscribed_to = Keypair::new().pubkey();
+    let (subscription_key, _) = Subscription::find_key(
+        &prg_test_ctx.payer.pubkey(),
+        &subscribed_to,
+        &jabber_program_id,
+    );
+
+    let create_sub_ix = create_subscription(
+        jabber_program_id,
+        create_subscription::Accounts {
+            subscription: &subscription_key,
+            subscriber: &prg_test_ctx.payer.pubkey(),
+            system_program: &system_program::ID,
+        },
+        create_subscription::Params { subscribed_to },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![create_sub_ix], vec![])
         .await
         .unwrap();
 }

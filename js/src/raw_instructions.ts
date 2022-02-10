@@ -743,6 +743,58 @@ export class setUserProfileInstruction {
     });
   }
 }
+export class createSubscriptionInstruction {
+  tag: number;
+  subscribedTo: Uint8Array;
+  static schema: Schema = new Map([
+    [
+      createSubscriptionInstruction,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["subscribedTo", [32]],
+        ],
+      },
+    ],
+  ]);
+  constructor(obj: { subscribedTo: Uint8Array }) {
+    this.tag = 13;
+    this.subscribedTo = obj.subscribedTo;
+  }
+  serialize(): Uint8Array {
+    return serialize(createSubscriptionInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    subscription: PublicKey,
+    subscriber: PublicKey,
+    systemProgram: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: subscription,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: subscriber,
+      isSigner: true,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: systemProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
 export class removeAdminFromGroupInstruction {
   tag: number;
   adminAddress: Uint8Array;
