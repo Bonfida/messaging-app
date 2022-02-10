@@ -1,19 +1,23 @@
 import {
-  CreateProfile,
-  JABBER_ID,
-  CreateThread,
-  SetUserProfile,
-  SendMessage,
-  CreateGroupThread,
-  EditGroupThread,
-  AddGroupAdmin,
-  RemoveGroupAdmin,
-  CreateGroupIndex,
-  SendMessageGroup,
-  DeleteMessage,
-  DeleteGroupMessage,
-} from "./instructions";
-import { Connection, MemcmpFilter, PublicKey } from "@solana/web3.js";
+  createProfileInstruction,
+  createThreadInstruction,
+  setUserProfileInstruction,
+  sendMessageInstruction,
+  createGroupThreadInstruction,
+  editGroupThreadInstruction,
+  addAdminToGroupInstruction,
+  removeAdminFromGroupInstruction,
+  createGroupIndexInstruction,
+  sendMessageGroupInstruction,
+  deleteMessageInstruction,
+  deleteGroupMessageInstruction,
+} from "./raw_instructions";
+import {
+  Connection,
+  MemcmpFilter,
+  PublicKey,
+  SystemProgram,
+} from "@solana/web3.js";
 import BN from "bn.js";
 import {
   Profile,
@@ -24,17 +28,24 @@ import {
   GroupThreadIndex,
 } from "./state";
 
+export const JABBER_ID = PublicKey.default;
+export const SOL_VAULT = new PublicKey(
+  "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi"
+);
+
 /**
  *
  * @param profileOwner Owner of the profile
- * @param name Name to display on the profile
+ * @param displayDomainName Domain name to display on the profile
+ * @param pictureHash The IPFS hash of the profile pic
  * @param bio Bio to display on the profile
  * @param lamportsPerMessage Amount of lamports the user wants to receive (i.e be paid) per message
  * @returns
  */
 export const createProfile = async (
   profileOwner: PublicKey,
-  name: string,
+  displayDomainName: string,
+  pictureHash: string,
   bio: string,
   lamportsPerMessage: number
 ) => {
@@ -42,11 +53,18 @@ export const createProfile = async (
     Profile.generateSeeds(profileOwner),
     JABBER_ID
   );
-  const instruction = new CreateProfile({
-    name: name,
-    bio: bio,
+  const instruction = new createProfileInstruction({
+    displayDomainName,
+    bio,
+    pictureHash,
     lamportsPerMessage: new BN(lamportsPerMessage),
-  }).getInstruction(profile, profileOwner, profileOwner);
+  }).getInstruction(
+    JABBER_ID,
+    SystemProgram.programId,
+    profile,
+    profileOwner,
+    profileOwner
+  );
 
   return instruction;
 };
@@ -68,49 +86,56 @@ export const createThread = async (
     JABBER_ID
   );
 
-  const instruction = new CreateThread({
-    sender: sender.toBuffer(),
-    receiver: receiver.toBuffer(),
-  }).getInstruction(thread, feePayer);
+  const instruction = new createThreadInstruction({
+    senderKey: sender.toBuffer(),
+    receiverKey: receiver.toBuffer(),
+  }).getInstruction(JABBER_ID, SystemProgram.programId, thread, feePayer);
 
   return instruction;
 };
 
 /**
  *
- * @param profileOwner Owner of the profile
- * @param name Name to display on the profile
- * @param bio Bio to display on the profile
- * @param lamportsPerMessage Amount of lamports the user wants to receive (i.e be paid) per message
+ * @param pictureHash IPFS hash of the profile pic
+ * @param displayDomainName Display domain name
+ * @param bio User bio
+ * @param lamportsPerMessage lamports per message
+ * @param allowDm If the user allows DM
+ * @param profileOwner Profile owner
  * @returns
  */
 export const setUserProfile = async (
-  profileOwner: PublicKey,
-  name: string,
+  pictureHash: string,
+  displayDomainName: string,
   bio: string,
-  lamportsPerMessage: number
+  lamportsPerMessage: number,
+  allowDm: boolean,
+  profileOwner: PublicKey
 ) => {
   const [profile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(profileOwner),
     JABBER_ID
   );
 
-  const instruction = new SetUserProfile({
-    name: name,
-    bio: bio,
+  const instruction = new setUserProfileInstruction({
+    pictureHash,
+    displayDomainName,
+    bio,
     lamportsPerMessage: new BN(lamportsPerMessage),
-  }).getInstruction(profileOwner, profile);
+    allowDm: allowDm ? 1 : 0,
+  }).getInstruction(JABBER_ID, profileOwner, profile);
 
   return instruction;
 };
 
 /**
  *
- * @param connection The solana connection object to the RPC node
- * @param sender The sender of the message
- * @param receiver The receiver of the message
- * @param message The message as a Uint8Array
- * @param kind Type of the message
+ * @param connection The RPC connection object
+ * @param sender The message sender account
+ * @param receiver The message receiver account
+ * @param message The message
+ * @param kind The message kind
+ * @param repliesTo If the message is a replie to another message (if not PublicKey.default())
  * @returns
  */
 export const sendMessage = async (
@@ -118,7 +143,8 @@ export const sendMessage = async (
   sender: PublicKey,
   receiver: PublicKey,
   message: Uint8Array,
-  kind: MessageType
+  kind: MessageType,
+  repliesTo: PublicKey
 ) => {
   const [receiverProfile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(receiver),
@@ -136,15 +162,19 @@ export const sendMessage = async (
     JABBER_ID
   );
 
-  const instruction = new SendMessage({
+  const instruction = new sendMessageInstruction({
     kind: kind,
-    message: message,
+    message: Array.from(message),
+    repliesTo: repliesTo.toBuffer(),
   }).getInstruction(
+    JABBER_ID,
+    SystemProgram.programId,
     sender,
     receiver,
     threadAccount,
     receiverProfile,
-    messageAccount
+    messageAccount,
+    SOL_VAULT
   );
 
   return instruction;
@@ -194,6 +224,7 @@ export const retrieveUserThread = async (
  * @param owner Owner of the group (only address that will be able to edit the group)
  * @param mediaEnabled Is it possible to send media (images, videos and audios)?
  * @param feePayer Fee payer of the instruction
+ * @param visible If the group can be visible for others to join. Only used for the app, at the end of the day everything is visible on-chain
  * @returns
  */
 export const createGroupThread = async (
@@ -204,19 +235,21 @@ export const createGroupThread = async (
   owner: PublicKey,
   mediaEnabled: boolean,
   adminOnly: boolean,
-  feePayer: PublicKey
+  feePayer: PublicKey,
+  visible: boolean
 ) => {
   const groupThread = await GroupThread.getKey(groupName, owner);
 
-  const instruction = new CreateGroupThread({
+  const instruction = new createGroupThreadInstruction({
     groupName,
     destinationWallet: destinationWallet.toBuffer(),
     lamportsPerMessage,
     admins: admins.map((e) => e.toBuffer()),
     owner: owner.toBuffer(),
-    mediaEnabled,
-    adminOnly,
-  }).getInstruction(groupThread, feePayer);
+    mediaEnabled: mediaEnabled ? 1 : 0,
+    adminOnly: adminOnly ? 1 : 0,
+    visible: visible ? 1 : 0,
+  }).getInstruction(JABBER_ID, SystemProgram.programId, groupThread, feePayer);
 
   return instruction;
 };
@@ -237,18 +270,20 @@ export const editGroupThread = async (
   lamportsPerMessage: BN,
   mediaEnabled: boolean,
   adminOnly: boolean,
-  groupPicHash?: string
+  groupPicHash: string,
+  visible: boolean
 ) => {
   const groupThread = await GroupThread.getKey(groupName, owner);
 
-  const instruction = new EditGroupThread({
+  const instruction = new editGroupThreadInstruction({
     destinationWallet: destinationWallet.toBuffer(),
     lamportsPerMessage,
     owner: owner.toBuffer(),
-    mediaEnabled: mediaEnabled,
-    adminOnly,
+    mediaEnabled: mediaEnabled ? 1 : 0,
+    adminOnly: adminOnly ? 1 : 0,
     groupPicHash,
-  }).getInstruction(owner, groupThread);
+    visible: visible ? 1 : 0,
+  }).getInstruction(JABBER_ID, owner, groupThread);
 
   return instruction;
 };
@@ -265,9 +300,9 @@ export const addAdminToGroup = (
   adminToAdd: PublicKey,
   groupOwner: PublicKey
 ) => {
-  const instruction = new AddGroupAdmin({
+  const instruction = new addAdminToGroupInstruction({
     adminAddress: adminToAdd.toBuffer(),
-  }).getInstruction(groupKey, groupOwner);
+  }).getInstruction(JABBER_ID, groupKey, groupOwner);
 
   return instruction;
 };
@@ -286,10 +321,10 @@ export const removeAdminFromGroup = (
   adminIndex: number,
   groupOwner: PublicKey
 ) => {
-  const instruction = new RemoveGroupAdmin({
+  const instruction = new removeAdminFromGroupInstruction({
     adminAddress: adminToRemove.toBuffer(),
-    adminIndex: adminIndex,
-  }).getInstruction(groupKey, groupOwner);
+    adminIndex: new BN(adminIndex),
+  }).getInstruction(JABBER_ID, groupKey, groupOwner);
 
   return instruction;
 };
@@ -304,11 +339,11 @@ export const createGroupIndex = async (
     owner,
     groupThread
   );
-  const instruction = new CreateGroupIndex({
+  const instruction = new createGroupIndexInstruction({
     groupName,
     groupThreadKey: groupThread.toBuffer(),
     owner: owner.toBuffer(),
-  }).getInstruction(groupIndex, owner);
+  }).getInstruction(JABBER_ID, SystemProgram.programId, groupIndex, owner);
 
   return instruction;
 };
@@ -332,14 +367,24 @@ export const sendMessageGroup = async (
   groupThread: PublicKey,
   destinationWallet: PublicKey,
   messageAccount: PublicKey,
-  adminIndex?: number
+  adminIndex: number,
+  repliesTo?: PublicKey
 ) => {
-  const instruction = new SendMessageGroup({
-    kind,
-    message,
+  const instruction = new sendMessageGroupInstruction({
+    kind: kind as number,
+    message: Array.from(message),
     groupName,
     adminIndex,
-  }).getInstruction(sender, groupThread, destinationWallet, messageAccount);
+    repliesTo: repliesTo ? repliesTo.toBuffer() : PublicKey.default.toBuffer(),
+  }).getInstruction(
+    JABBER_ID,
+    SystemProgram.programId,
+    sender,
+    groupThread,
+    destinationWallet,
+    messageAccount,
+    SOL_VAULT
+  );
 
   return instruction;
 };
@@ -387,11 +432,9 @@ export const deleteMessage = async (
   message: PublicKey,
   messageIndex: number
 ) => {
-  const instruction = new DeleteMessage({ messageIndex }).getInstruction(
-    sender,
-    receiver,
-    message
-  );
+  const instruction = new deleteMessageInstruction({
+    messageIndex,
+  }).getInstruction(JABBER_ID, sender, receiver, message);
 
   return instruction;
 };
@@ -414,14 +457,14 @@ export const deleteGroupMessage = async (
   messageIndex: number,
   owner: PublicKey,
   groupName: string,
-  adminIndex?: number
+  adminIndex: number
 ) => {
-  const instruction = new DeleteGroupMessage({
+  const instruction = new deleteGroupMessageInstruction({
     messageIndex,
     owner: owner.toBuffer(),
-    adminIndex: adminIndex ? new BN(adminIndex) : undefined,
+    adminIndex: adminIndex,
     groupName,
-  }).getInstruction(groupThread, message, feePayer);
+  }).getInstruction(JABBER_ID, groupThread, message, feePayer);
 
   return instruction;
 };

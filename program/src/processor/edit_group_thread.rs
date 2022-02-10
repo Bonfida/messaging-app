@@ -20,8 +20,8 @@ pub struct Params {
     pub lamports_per_message: u64,
     pub owner: Pubkey,
     pub media_enabled: bool,
-    pub group_pic_hash: Option<String>,
     pub admin_only: bool,
+    pub group_pic_hash: String,
 }
 
 #[derive(InstructionsAccount)]

@@ -1,7 +1,7 @@
 import { PublicKey, Connection } from "@solana/web3.js";
 import BN from "bn.js";
 import { Schema, deserializeUnchecked, deserialize } from "borsh";
-import { JABBER_ID } from "./instructions";
+import { JABBER_ID } from "./bindings";
 import { orderKeys } from "./utils";
 
 export enum Tag {

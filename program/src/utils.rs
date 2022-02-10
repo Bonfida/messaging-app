@@ -119,13 +119,8 @@ pub fn check_admin_only(
     Ok(())
 }
 
-pub fn check_hash_len(hash: &Option<String>) -> ProgramResult {
-    let too_long = match hash {
-        Some(hash) => hash.len() > MAX_HASH_LEN,
-        None => false,
-    };
-
-    if too_long {
+pub fn check_hash_len(hash: &str) -> ProgramResult {
+    if hash.len() > MAX_HASH_LEN {
         return Err(JabberError::InvalidHashLength.into());
     }
     Ok(())

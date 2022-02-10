@@ -190,7 +190,7 @@ async fn test_jabber() {
             owner: prg_test_ctx.payer.pubkey(),
             media_enabled: false,
             admin_only: false,
-            group_pic_hash: Some("".to_string()),
+            group_pic_hash: "".to_string(),
         },
     );
 
