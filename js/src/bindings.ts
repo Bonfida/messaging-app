@@ -11,6 +11,7 @@ import {
   sendMessageGroupInstruction,
   deleteMessageInstruction,
   deleteGroupMessageInstruction,
+  createSubscriptionInstruction,
 } from "./raw_instructions";
 import {
   Connection,
@@ -26,6 +27,7 @@ import {
   Message,
   GroupThread,
   GroupThreadIndex,
+  Subscription,
 } from "./state";
 
 export const JABBER_ID = PublicKey.default;
@@ -469,6 +471,28 @@ export const deleteGroupMessage = async (
   return instruction;
 };
 
+/**
+ *
+ * @param subscribedTo The key to which the user is subscribing
+ * @param subscriber The user subscribing to the key
+ * @returns
+ */
+export const createSubscription = async (
+  subscribedTo: PublicKey,
+  subscriber: PublicKey
+) => {
+  const subscription = await Subscription.getKey(subscriber, subscribedTo);
+  const ix = new createSubscriptionInstruction({
+    subscribedTo: subscribedTo.toBuffer(),
+  }).getInstruction(
+    JABBER_ID,
+    subscription,
+    subscriber,
+    SystemProgram.programId
+  );
+  return ix;
+};
+
 export const retrieveGroupMembers = async (
   connection: Connection,
   group: PublicKey
@@ -492,4 +516,26 @@ export const retrieveGroupMembers = async (
   return result.map(
     (acc) => GroupThreadIndex.deserialize(acc.account.data).owner
   );
+};
+
+export const retrieveUserSubscription = async (
+  connection: Connection,
+  user: PublicKey
+) => {
+  let filters: MemcmpFilter[] = [
+    {
+      memcmp: {
+        offset: 1,
+        bytes: user.toBase58(),
+      },
+    },
+    {
+      memcmp: {
+        offset: 0,
+        bytes: "8",
+      },
+    },
+  ];
+  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  return result.map((acc) => Subscription.deserialize(acc.account.data));
 };

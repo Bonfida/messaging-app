@@ -474,7 +474,7 @@ impl GroupThreadIndex {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize)]
+#[derive(BorshSerialize, BorshDeserialize, BorshSize)]
 pub struct Subscription {
     // Pubkey of the subscriber
     pub subscriber: Pubkey,
