@@ -63,10 +63,10 @@ export class deleteMessageInstruction {
 export class sendMessageGroupInstruction {
   tag: number;
   kind: number;
-  repliesTo: number;
+  repliesTo: Uint8Array;
   adminIndex: number;
   groupName: string;
-  message: number;
+  message: number[];
   static schema: Schema = new Map([
     [
       sendMessageGroupInstruction,
@@ -75,20 +75,20 @@ export class sendMessageGroupInstruction {
         fields: [
           ["tag", "u8"],
           ["kind", "u8"],
-          ["repliesTo", "u8"],
+          ["repliesTo", [32]],
           ["adminIndex", "u8"],
           ["groupName", "string"],
-          ["message", "u8"],
+          ["message", ["u8"]],
         ],
       },
     ],
   ]);
   constructor(obj: {
     kind: number;
-    repliesTo: number;
+    repliesTo: Uint8Array;
     adminIndex: number;
     groupName: string;
-    message: number;
+    message: number[];
   }) {
     this.tag = 6;
     this.kind = obj.kind;
@@ -151,8 +151,8 @@ export class sendMessageGroupInstruction {
 export class sendMessageInstruction {
   tag: number;
   kind: number;
-  repliesTo: number;
-  message: number;
+  repliesTo: Uint8Array;
+  message: number[];
   static schema: Schema = new Map([
     [
       sendMessageInstruction,
@@ -161,13 +161,13 @@ export class sendMessageInstruction {
         fields: [
           ["tag", "u8"],
           ["kind", "u8"],
-          ["repliesTo", "u8"],
-          ["message", "u8"],
+          ["repliesTo", [32]],
+          ["message", ["u8"]],
         ],
       },
     ],
   ]);
-  constructor(obj: { kind: number; repliesTo: number; message: number }) {
+  constructor(obj: { kind: number; repliesTo: Uint8Array; message: number[] }) {
     this.tag = 3;
     this.kind = obj.kind;
     this.repliesTo = obj.repliesTo;
@@ -305,7 +305,7 @@ export class createProfileInstruction {
 export class deleteGroupMessageInstruction {
   tag: number;
   messageIndex: number;
-  owner: number;
+  owner: Uint8Array;
   adminIndex: number;
   groupName: string;
   static schema: Schema = new Map([
@@ -316,7 +316,7 @@ export class deleteGroupMessageInstruction {
         fields: [
           ["tag", "u8"],
           ["messageIndex", "u32"],
-          ["owner", "u8"],
+          ["owner", [32]],
           ["adminIndex", "u8"],
           ["groupName", "string"],
         ],
@@ -325,7 +325,7 @@ export class deleteGroupMessageInstruction {
   ]);
   constructor(obj: {
     messageIndex: number;
-    owner: number;
+    owner: Uint8Array;
     adminIndex: number;
     groupName: string;
   }) {
@@ -446,8 +446,8 @@ export class sendTipInstruction {
 }
 export class createThreadInstruction {
   tag: number;
-  senderKey: number;
-  receiverKey: number;
+  senderKey: Uint8Array;
+  receiverKey: Uint8Array;
   static schema: Schema = new Map([
     [
       createThreadInstruction,
@@ -455,13 +455,13 @@ export class createThreadInstruction {
         kind: "struct",
         fields: [
           ["tag", "u8"],
-          ["senderKey", "u8"],
-          ["receiverKey", "u8"],
+          ["senderKey", [32]],
+          ["receiverKey", [32]],
         ],
       },
     ],
   ]);
-  constructor(obj: { senderKey: number; receiverKey: number }) {
+  constructor(obj: { senderKey: Uint8Array; receiverKey: Uint8Array }) {
     this.tag = 1;
     this.senderKey = obj.senderKey;
     this.receiverKey = obj.receiverKey;
@@ -501,7 +501,7 @@ export class createThreadInstruction {
 }
 export class addAdminToGroupInstruction {
   tag: number;
-  adminAddress: number;
+  adminAddress: Uint8Array;
   static schema: Schema = new Map([
     [
       addAdminToGroupInstruction,
@@ -509,12 +509,12 @@ export class addAdminToGroupInstruction {
         kind: "struct",
         fields: [
           ["tag", "u8"],
-          ["adminAddress", "u8"],
+          ["adminAddress", [32]],
         ],
       },
     ],
   ]);
-  constructor(obj: { adminAddress: number }) {
+  constructor(obj: { adminAddress: Uint8Array }) {
     this.tag = 7;
     this.adminAddress = obj.adminAddress;
   }
@@ -548,12 +548,12 @@ export class addAdminToGroupInstruction {
 export class editGroupThreadInstruction {
   tag: number;
   visible: number;
-  destinationWallet: number;
+  destinationWallet: Uint8Array;
   lamportsPerMessage: BN;
-  owner: number;
+  owner: Uint8Array;
   mediaEnabled: number;
-  groupPicHash: number;
   adminOnly: number;
+  groupPicHash: string;
   static schema: Schema = new Map([
     [
       editGroupThreadInstruction,
@@ -562,24 +562,24 @@ export class editGroupThreadInstruction {
         fields: [
           ["tag", "u8"],
           ["visible", "u8"],
-          ["destinationWallet", "u8"],
+          ["destinationWallet", [32]],
           ["lamportsPerMessage", "u64"],
-          ["owner", "u8"],
+          ["owner", [32]],
           ["mediaEnabled", "u8"],
-          ["groupPicHash", "u8"],
           ["adminOnly", "u8"],
+          ["groupPicHash", "string"],
         ],
       },
     ],
   ]);
   constructor(obj: {
     visible: number;
-    destinationWallet: number;
+    destinationWallet: Uint8Array;
     lamportsPerMessage: BN;
-    owner: number;
+    owner: Uint8Array;
     mediaEnabled: number;
-    groupPicHash: number;
     adminOnly: number;
+    groupPicHash: string;
   }) {
     this.tag = 5;
     this.visible = obj.visible;
@@ -587,8 +587,8 @@ export class editGroupThreadInstruction {
     this.lamportsPerMessage = obj.lamportsPerMessage;
     this.owner = obj.owner;
     this.mediaEnabled = obj.mediaEnabled;
-    this.groupPicHash = obj.groupPicHash;
     this.adminOnly = obj.adminOnly;
+    this.groupPicHash = obj.groupPicHash;
   }
   serialize(): Uint8Array {
     return serialize(editGroupThreadInstruction.schema, this);
@@ -620,8 +620,8 @@ export class editGroupThreadInstruction {
 export class createGroupIndexInstruction {
   tag: number;
   groupName: string;
-  groupThreadKey: number;
-  owner: number;
+  groupThreadKey: Uint8Array;
+  owner: Uint8Array;
   static schema: Schema = new Map([
     [
       createGroupIndexInstruction,
@@ -630,16 +630,16 @@ export class createGroupIndexInstruction {
         fields: [
           ["tag", "u8"],
           ["groupName", "string"],
-          ["groupThreadKey", "u8"],
-          ["owner", "u8"],
+          ["groupThreadKey", [32]],
+          ["owner", [32]],
         ],
       },
     ],
   ]);
   constructor(obj: {
     groupName: string;
-    groupThreadKey: number;
-    owner: number;
+    groupThreadKey: Uint8Array;
+    owner: Uint8Array;
   }) {
     this.tag = 9;
     this.groupName = obj.groupName;
@@ -745,7 +745,7 @@ export class setUserProfileInstruction {
 }
 export class removeAdminFromGroupInstruction {
   tag: number;
-  adminAddress: number;
+  adminAddress: Uint8Array;
   adminIndex: BN;
   static schema: Schema = new Map([
     [
@@ -754,13 +754,13 @@ export class removeAdminFromGroupInstruction {
         kind: "struct",
         fields: [
           ["tag", "u8"],
-          ["adminAddress", "u8"],
+          ["adminAddress", [32]],
           ["adminIndex", "u64"],
         ],
       },
     ],
   ]);
-  constructor(obj: { adminAddress: number; adminIndex: BN }) {
+  constructor(obj: { adminAddress: Uint8Array; adminIndex: BN }) {
     this.tag = 8;
     this.adminAddress = obj.adminAddress;
     this.adminIndex = obj.adminIndex;
@@ -796,10 +796,10 @@ export class createGroupThreadInstruction {
   tag: number;
   visible: number;
   groupName: string;
-  destinationWallet: number;
+  destinationWallet: Uint8Array;
   lamportsPerMessage: BN;
-  admins: number;
-  owner: number;
+  admins: Uint8Array[];
+  owner: Uint8Array;
   mediaEnabled: number;
   adminOnly: number;
   static schema: Schema = new Map([
@@ -811,10 +811,10 @@ export class createGroupThreadInstruction {
           ["tag", "u8"],
           ["visible", "u8"],
           ["groupName", "string"],
-          ["destinationWallet", "u8"],
+          ["destinationWallet", [32]],
           ["lamportsPerMessage", "u64"],
-          ["admins", "u8"],
-          ["owner", "u8"],
+          ["admins", [[32]]],
+          ["owner", [32]],
           ["mediaEnabled", "u8"],
           ["adminOnly", "u8"],
         ],
@@ -824,10 +824,10 @@ export class createGroupThreadInstruction {
   constructor(obj: {
     visible: number;
     groupName: string;
-    destinationWallet: number;
+    destinationWallet: Uint8Array;
     lamportsPerMessage: BN;
-    admins: number;
-    owner: number;
+    admins: Uint8Array[];
+    owner: Uint8Array;
     mediaEnabled: number;
     adminOnly: number;
   }) {

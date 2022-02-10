@@ -298,7 +298,7 @@ pub struct GroupThread {
     // Whether admins only can post messages
     pub admin_only: bool,
     // IPFS hash of the group
-    pub group_pic_hash: Option<String>,
+    pub group_pic_hash: String,
     // Human readable group name
     pub group_name: String,
     // Admins of the group (fee exempt)
@@ -332,7 +332,7 @@ impl GroupThread {
             admins,
             owner,
             media_enabled,
-            group_pic_hash: None,
+            group_pic_hash: "".to_string(),
             admin_only,
             last_message_time: current_time,
         }

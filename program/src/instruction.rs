@@ -8,7 +8,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{instruction::Instruction, pubkey::Pubkey};
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum JabberInstruction {
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -16,20 +16,20 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ✅      | The profile owner account  |
     /// | 3     | ✅        | ✅      | The fee payer account      |
     CreateProfile,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
     /// | 1     | ✅        | ❌      | The thread account         |
     /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateThread,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description               |
     /// | ----------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The profile owner account |
     /// | 1     | ✅        | ❌      | The profile account       |
     SetUserProfile,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                  |
     /// | -------------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The system program account   |
@@ -40,20 +40,20 @@ pub enum JabberInstruction {
     /// | 5     | ✅        | ❌      | The message account          |
     /// | 6     | ✅        | ❌      | The SOL vault account        |
     SendMessage,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
     /// | 1     | ✅        | ❌      | The group thread account   |
     /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateGroupThread,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The group owner account  |
     /// | 1     | ✅        | ❌      | The group thread account |
     EditGroupThread,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -63,40 +63,40 @@ pub enum JabberInstruction {
     /// | 4     | ✅        | ❌      | The message account        |
     /// | 5     | ✅        | ❌      | The SOL vault account      |
     SendMessageGroup,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The group thread account |
     /// | 1     | ✅        | ✅      | The group owner account  |
     AddAdminToGroup,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The group thread account |
     /// | 1     | ✅        | ✅      | The group owner account  |
     RemoveAdminFromGroup,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                    |
     /// | ---------------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The system program account     |
     /// | 1     | ✅        | ❌      | The group thread index account |
     /// | 2     | ✅        | ✅      | The fee payer account          |
     CreateGroupIndex,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                  |
     /// | -------------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The message sender account   |
     /// | 1     | ❌        | ❌      | The message receiver account |
     /// | 2     | ✅        | ❌      | The message account          |
     DeleteMessage,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The group thread account |
     /// | 1     | ✅        | ❌      | The message account      |
     /// | 2     | ✅        | ✅      | The fee payer account    |
     DeleteGroupMessage,
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                      |
     /// | ------------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The SPL token program ID         |
