@@ -30,7 +30,9 @@ import {
   Subscription,
 } from "./state";
 
-export const JABBER_ID = PublicKey.default;
+export const JABBER_ID = new PublicKey(
+  "2iKLjPgcL3cwEGwJeXj3bEbYFkWEPQ4UqpueL1iSXZZ9"
+);
 export const SOL_VAULT = new PublicKey(
   "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi"
 );
@@ -369,14 +371,14 @@ export const sendMessageGroup = async (
   groupThread: PublicKey,
   destinationWallet: PublicKey,
   messageAccount: PublicKey,
-  adminIndex: number,
+  adminIndex?: number,
   repliesTo?: PublicKey
 ) => {
   const instruction = new sendMessageGroupInstruction({
     kind: kind as number,
     message: Array.from(message),
     groupName,
-    adminIndex,
+    adminIndex: adminIndex ? new BN(adminIndex) : undefined,
     repliesTo: repliesTo ? repliesTo.toBuffer() : PublicKey.default.toBuffer(),
   }).getInstruction(
     JABBER_ID,
@@ -464,7 +466,7 @@ export const deleteGroupMessage = async (
   const instruction = new deleteGroupMessageInstruction({
     messageIndex,
     owner: owner.toBuffer(),
-    adminIndex: adminIndex,
+    adminIndex: adminIndex ? new BN(adminIndex) : undefined,
     groupName,
   }).getInstruction(JABBER_ID, groupThread, message, feePayer);
 

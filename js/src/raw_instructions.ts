@@ -64,7 +64,7 @@ export class sendMessageGroupInstruction {
   tag: number;
   kind: number;
   repliesTo: Uint8Array;
-  adminIndex: number;
+  adminIndex: BN | undefined;
   groupName: string;
   message: number[];
   static schema: Schema = new Map([
@@ -86,7 +86,7 @@ export class sendMessageGroupInstruction {
   constructor(obj: {
     kind: number;
     repliesTo: Uint8Array;
-    adminIndex: number;
+    adminIndex: BN | undefined;
     groupName: string;
     message: number[];
   }) {
@@ -306,7 +306,7 @@ export class deleteGroupMessageInstruction {
   tag: number;
   messageIndex: number;
   owner: Uint8Array;
-  adminIndex: number;
+  adminIndex: BN | undefined;
   groupName: string;
   static schema: Schema = new Map([
     [
@@ -326,7 +326,7 @@ export class deleteGroupMessageInstruction {
   constructor(obj: {
     messageIndex: number;
     owner: Uint8Array;
-    adminIndex: number;
+    adminIndex: BN | undefined;
     groupName: string;
   }) {
     this.tag = 11;
