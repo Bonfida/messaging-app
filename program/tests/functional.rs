@@ -14,7 +14,6 @@ use solana_sdk::signature::Signer;
 use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
 use spl_token::instruction::{initialize_mint, mint_to};
 
-use std::str::FromStr;
 pub mod common;
 
 use crate::common::utils::sign_send_instructions;
