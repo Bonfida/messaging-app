@@ -40,36 +40,17 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             group_owner: next_account_info(accounts_iter)?,
         };
 
-        check_signer(accounts.group_owner)?;
+        // Check keys
+
+        // Check ownership
         check_account_owner(
             accounts.group_thread,
             program_id,
             JabberError::WrongGroupThreadOwner,
         )?;
 
-        if accounts.group_thread.data_is_empty() {
-            return Err(ProgramError::UninitializedAccount);
-        }
-
-        let group_thread = GroupThread::from_account_info(accounts.group_thread)?;
-
-        let (expected_group_thread_key, _) = GroupThread::find_key(
-            group_thread.group_name,
-            *accounts.group_owner.key,
-            program_id,
-        );
-
-        check_account_key(
-            accounts.group_thread,
-            &expected_group_thread_key,
-            JabberError::AccountNotDeterministic,
-        )?;
-
-        check_account_key(
-            accounts.group_owner,
-            &group_thread.owner,
-            JabberError::WrongGroupOwner,
-        )?;
+        // Check signer
+        check_signer(accounts.group_owner)?;
 
         Ok(accounts)
     }
@@ -84,6 +65,24 @@ pub(crate) fn process(
     let Params { admin_address } = params;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
+
+    let (expected_group_thread_key, _) = GroupThread::find_key(
+        group_thread.group_name.clone(),
+        *accounts.group_owner.key,
+        program_id,
+    );
+    check_account_key(
+        accounts.group_thread,
+        &expected_group_thread_key,
+        JabberError::AccountNotDeterministic,
+    )?;
+
+    check_account_key(
+        accounts.group_owner,
+        &group_thread.owner,
+        JabberError::WrongGroupOwner,
+    )?;
+
     group_thread.add_admin(admin_address)?;
     group_thread.save(&mut accounts.group_thread.data.borrow_mut());
 

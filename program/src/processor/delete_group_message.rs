@@ -42,8 +42,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
-        params: &Params,
-    ) -> Result<(Self, Message, GroupThread), ProgramError> {
+    ) -> Result<Self, ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Self {
             group_thread: next_account_info(accounts_iter)?,
@@ -51,46 +50,20 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             fee_payer: next_account_info(accounts_iter)?,
         };
 
-        check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
+        // Check keys
+
+        // Check ownership
         check_account_owner(
             accounts.group_thread,
             program_id,
             JabberError::WrongGroupThreadOwner,
         )?;
+        check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
+
+        // Check signer
         check_signer(accounts.fee_payer)?;
 
-        let message = Message::from_account_info(accounts.message)?;
-        let group_thread = GroupThread::from_account_info(accounts.group_thread)?;
-
-        let (expected_message_key, _) = Message::find_key(
-            params.message_index,
-            accounts.group_thread.key,
-            accounts.group_thread.key,
-            program_id,
-        );
-
-        let expected_group_key = GroupThread::create_key(
-            params.group_name.to_string(),
-            params.owner,
-            program_id,
-            group_thread.bump,
-        );
-
-        check_keys(&params.owner, &group_thread.owner)?;
-        check_names(&params.group_name, &group_thread.group_name)?;
-
-        check_account_key(
-            accounts.group_thread,
-            &expected_group_key,
-            JabberError::AccountNotDeterministic,
-        )?;
-        check_account_key(
-            accounts.message,
-            &expected_message_key,
-            JabberError::AccountNotDeterministic,
-        )?;
-
-        Ok((accounts, message, group_thread))
+        Ok(accounts)
     }
 }
 
@@ -99,7 +72,34 @@ pub(crate) fn process(
     accounts: &[AccountInfo],
     params: Params,
 ) -> ProgramResult {
-    let (accounts, mut message, group_thread) = Accounts::parse(program_id, accounts, &params)?;
+    let accounts = Accounts::parse(program_id, accounts)?;
+
+    let mut message = Message::from_account_info(accounts.message)?;
+    let group_thread = GroupThread::from_account_info(accounts.group_thread)?;
+
+    let (expected_message_key, _) = Message::find_key(
+        params.message_index,
+        accounts.group_thread.key,
+        accounts.group_thread.key,
+        program_id,
+    );
+
+    let (expected_group_key, _) =
+        GroupThread::find_key(params.group_name.to_string(), params.owner, program_id);
+
+    check_keys(&params.owner, &group_thread.owner)?;
+    check_names(&params.group_name, &group_thread.group_name)?;
+
+    check_account_key(
+        accounts.group_thread,
+        &expected_group_key,
+        JabberError::AccountNotDeterministic,
+    )?;
+    check_account_key(
+        accounts.message,
+        &expected_message_key,
+        JabberError::AccountNotDeterministic,
+    )?;
 
     // The message can be deleted by:
     // - The original sender

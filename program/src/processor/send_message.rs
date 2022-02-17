@@ -76,24 +76,33 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             message: next_account_info(accounts_iter)?,
             sol_vault: next_account_info(accounts_iter)?,
         };
+
+        // Check keys
         check_account_key(
             accounts.system_program,
             &system_program::ID,
             JabberError::WrongSystemProgramAccount,
         )?;
-        check_signer(accounts.sender)?;
-        check_account_owner(
-            accounts.thread,
-            program_id,
-            JabberError::WrongThreadAccountOwner,
-        )?;
-
-        check_rent_exempt(accounts.thread)?;
         check_account_key(
             accounts.sol_vault,
             &SOL_VAULT,
             JabberError::WrongSolVaultAccount,
         )?;
+
+        // Check ownership
+        check_account_owner(
+            accounts.thread,
+            program_id,
+            JabberError::WrongThreadAccountOwner,
+        )?;
+        check_account_owner(
+            accounts.message,
+            &system_program::ID,
+            JabberError::WrongOwner,
+        )?;
+
+        // Check signer
+        check_signer(accounts.sender)?;
 
         Ok(accounts)
     }
@@ -137,6 +146,7 @@ pub(crate) fn process(
         &message_key,
         JabberError::AccountNotDeterministic,
     )?;
+    check_rent_exempt(accounts.thread)?;
 
     let now = Clock::get()?.unix_timestamp;
     let message = Message::new(kind, now, message, *accounts.sender.key, replies_to);

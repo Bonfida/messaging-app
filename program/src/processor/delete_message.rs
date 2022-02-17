@@ -35,8 +35,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
-        params: Params,
-    ) -> Result<(Self, Message), ProgramError> {
+    ) -> Result<Self, ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Self {
             sender: next_account_info(accounts_iter)?,
@@ -44,30 +43,15 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             message: next_account_info(accounts_iter)?,
         };
 
-        check_signer(accounts.sender)?;
+        // Check keys
+
+        // Check ownership
         check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
 
-        let message = Message::from_account_info(accounts.message)?;
+        // Check signer
+        check_signer(accounts.sender)?;
 
-        let (expected_message_key, _) = Message::find_key(
-            params.message_index,
-            accounts.sender.key,
-            accounts.receiver.key,
-            program_id,
-        );
-
-        check_account_key(
-            accounts.message,
-            &expected_message_key,
-            JabberError::AccountNotDeterministic,
-        )?;
-        check_account_key(
-            accounts.sender,
-            &message.sender,
-            JabberError::AccountNotAuthorized,
-        )?;
-
-        Ok((accounts, message))
+        Ok(accounts)
     }
 }
 
@@ -76,7 +60,27 @@ pub(crate) fn process(
     accounts: &[AccountInfo],
     params: Params,
 ) -> ProgramResult {
-    let (accounts, mut message) = Accounts::parse(program_id, accounts, params)?;
+    let accounts = Accounts::parse(program_id, accounts)?;
+
+    let mut message = Message::from_account_info(accounts.message)?;
+
+    let (expected_message_key, _) = Message::find_key(
+        params.message_index,
+        accounts.sender.key,
+        accounts.receiver.key,
+        program_id,
+    );
+
+    check_account_key(
+        accounts.message,
+        &expected_message_key,
+        JabberError::AccountNotDeterministic,
+    )?;
+    check_account_key(
+        accounts.sender,
+        &message.sender,
+        JabberError::AccountNotAuthorized,
+    )?;
 
     message.kind = MessageType::Deleted;
     message.save(&mut accounts.message.data.borrow_mut());

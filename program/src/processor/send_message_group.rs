@@ -74,23 +74,33 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             message: next_account_info(accounts_iter)?,
             sol_vault: next_account_info(accounts_iter)?,
         };
+
+        // Check keys
         check_account_key(
             accounts.system_program,
             &system_program::ID,
             JabberError::WrongSystemProgramAccount,
         )?;
-        check_signer(accounts.sender)?;
-        check_account_owner(
-            accounts.group_thread,
-            program_id,
-            JabberError::WrongThreadAccountOwner,
-        )?;
-        check_rent_exempt(accounts.group_thread)?;
         check_account_key(
             accounts.sol_vault,
             &SOL_VAULT,
             JabberError::WrongSolVaultAccount,
         )?;
+
+        // Check ownership
+        check_account_owner(
+            accounts.group_thread,
+            program_id,
+            JabberError::WrongThreadAccountOwner,
+        )?;
+        check_account_owner(
+            accounts.message,
+            &system_program::ID,
+            JabberError::WrongOwner,
+        )?;
+
+        // Check signer
+        check_signer(accounts.sender)?;
 
         Ok(accounts)
     }
@@ -113,6 +123,8 @@ pub(crate) fn process(
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
     let (group_thread_key, _) = GroupThread::find_key(group_name, group_thread.owner, program_id);
+
+    check_rent_exempt(accounts.group_thread)?;
 
     check_admin_only(&group_thread, accounts.sender.key, admin_index)?;
 

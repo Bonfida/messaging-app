@@ -43,21 +43,13 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             profile: next_account_info(accounts_iter)?,
         };
 
-        check_signer(accounts.profile_owner)?;
+        // Check keys
+
+        // Check ownership
         check_account_owner(accounts.profile, program_id, JabberError::WrongProfileOwner)?;
 
-        if accounts.profile.data_is_empty() {
-            return Err(ProgramError::UninitializedAccount);
-        }
-
-        let (expected_user_profile_key, _) =
-            Profile::find_key(accounts.profile_owner.key, program_id);
-
-        check_account_key(
-            accounts.profile,
-            &expected_user_profile_key,
-            JabberError::AccountNotDeterministic,
-        )?;
+        // Check signer
+        check_signer(accounts.profile_owner)?;
 
         Ok(accounts)
     }
@@ -68,6 +60,8 @@ pub(crate) fn process(
     accounts: &[AccountInfo],
     params: Params,
 ) -> ProgramResult {
+    let accounts = Accounts::parse(program_id, accounts)?;
+
     let Params {
         picture_hash,
         display_domain_name,
@@ -76,9 +70,15 @@ pub(crate) fn process(
         allow_dm,
     } = params;
 
-    check_profile_params(&picture_hash, &display_domain_name, &bio)?;
+    let (expected_user_profile_key, _) = Profile::find_key(accounts.profile_owner.key, program_id);
 
-    let accounts = Accounts::parse(program_id, accounts)?;
+    check_account_key(
+        accounts.profile,
+        &expected_user_profile_key,
+        JabberError::AccountNotDeterministic,
+    )?;
+
+    check_profile_params(&picture_hash, &display_domain_name, &bio)?;
 
     let mut profile = Profile::from_account_info(accounts.profile)?;
 
