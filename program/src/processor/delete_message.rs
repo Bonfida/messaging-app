@@ -43,6 +43,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             receiver: next_account_info(accounts_iter)?,
             message: next_account_info(accounts_iter)?,
         };
+
         check_signer(accounts.sender)?;
         check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
 

@@ -125,7 +125,7 @@ async fn test_jabber() {
             thread: &thread_account,
             receiver_profile: &profile_account,
             message: &message_account,
-            sol_vault: &Pubkey::from_str(SOL_VAULT).unwrap(),
+            sol_vault: &SOL_VAULT,
         },
         send_message::Params {
             replies_to: Pubkey::default(),
@@ -210,7 +210,7 @@ async fn test_jabber() {
             group_thread: &group_thread,
             destination_wallet: &receiver_account.pubkey(),
             message: &group_message,
-            sol_vault: &Pubkey::from_str(SOL_VAULT).unwrap(),
+            sol_vault: &SOL_VAULT,
         },
         send_message_group::Params {
             kind: MessageType::UnencryptedText,

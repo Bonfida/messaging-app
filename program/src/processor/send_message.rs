@@ -93,7 +93,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_rent_exempt(accounts.thread)?;
         check_account_key(
             accounts.sol_vault,
-            &Pubkey::from_str(SOL_VAULT).unwrap(),
+            &SOL_VAULT,
             JabberError::WrongSolVaultAccount,
         )?;
 

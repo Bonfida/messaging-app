@@ -94,6 +94,9 @@ impl PrintProgramError for JabberError {
             JabberError::DmClosed => {
                 msg!("Error: Receiver does not allow direct messages")
             }
+            JabberError::WrongOwner => {
+                msg!("Error: Wrong account owner")
+            }
         }
     }
 }

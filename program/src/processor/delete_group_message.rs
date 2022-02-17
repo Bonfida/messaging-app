@@ -50,6 +50,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             message: next_account_info(accounts_iter)?,
             fee_payer: next_account_info(accounts_iter)?,
         };
+
         check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
         check_account_owner(
             accounts.group_thread,

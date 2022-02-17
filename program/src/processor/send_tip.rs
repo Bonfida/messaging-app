@@ -84,6 +84,11 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             program_id,
             JabberError::WrongProfileOwner,
         )?;
+        check_account_owner(
+            accounts.token_destination,
+            &spl_token::ID,
+            JabberError::WrongOwner,
+        )?;
 
         // Check signer
         check_signer(accounts.sender)?;

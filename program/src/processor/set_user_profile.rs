@@ -45,14 +45,13 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
         check_signer(accounts.profile_owner)?;
         check_account_owner(accounts.profile, program_id, JabberError::WrongProfileOwner)?;
-        if accounts.profile.data.borrow()[0] == 0 {
+
+        if accounts.profile.data_is_empty() {
             return Err(ProgramError::UninitializedAccount);
         }
 
-        let profile = Profile::from_account_info(accounts.profile)?;
-
-        let expected_user_profile_key =
-            Profile::create_key(accounts.profile_owner.key, program_id, profile.bump);
+        let (expected_user_profile_key, _) =
+            Profile::find_key(accounts.profile_owner.key, program_id);
 
         check_account_key(
             accounts.profile,

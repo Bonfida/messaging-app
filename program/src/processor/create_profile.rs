@@ -1,5 +1,5 @@
 //! Create a user Jabber profile
-use crate::utils::{check_account_key, check_signer};
+use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -59,11 +59,21 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             fee_payer: next_account_info(accounts_iter)?,
         };
 
+        // Check keys
         check_account_key(
             accounts.system_program,
             &system_program::ID,
             JabberError::WrongSystemProgramAccount,
         )?;
+
+        // Check ownership
+        check_account_owner(
+            accounts.profile,
+            &system_program::ID,
+            JabberError::WrongOwner,
+        )?;
+
+        // Check signer
         check_signer(accounts.profile_owner)?;
 
         Ok(accounts)

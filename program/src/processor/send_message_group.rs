@@ -90,7 +90,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_rent_exempt(accounts.group_thread)?;
         check_account_key(
             accounts.sol_vault,
-            &Pubkey::from_str(SOL_VAULT).unwrap(),
+            &SOL_VAULT,
             JabberError::WrongSolVaultAccount,
         )?;
 
@@ -114,12 +114,7 @@ pub(crate) fn process(
     } = params;
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
-    let group_thread_key = GroupThread::create_key(
-        group_name,
-        group_thread.owner,
-        program_id,
-        group_thread.bump,
-    );
+    let (group_thread_key, _) = GroupThread::find_key(group_name, group_thread.owner, program_id);
 
     check_admin_only(&group_thread, accounts.sender.key, admin_index)?;
 

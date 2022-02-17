@@ -1,7 +1,7 @@
 //! Create a group thread
 use crate::error::JabberError;
 use crate::state::{GroupThread, MAX_GROUP_THREAD_LEN};
-use crate::utils::{check_account_key, check_group_thread_params};
+use crate::utils::{check_account_key, check_account_owner, check_group_thread_params};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -57,10 +57,18 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             fee_payer: next_account_info(accounts_iter)?,
         };
 
+        // Check keys
         check_account_key(
             accounts.system_program,
             &system_program::ID,
             JabberError::WrongSystemProgramAccount,
+        )?;
+
+        // Check ownership
+        check_account_owner(
+            accounts.group_thread,
+            &system_program::ID,
+            JabberError::WrongOwner,
         )?;
 
         Ok(accounts)

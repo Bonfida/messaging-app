@@ -1,8 +1,8 @@
 //! Create a DM thread between two users
 use crate::error::JabberError;
 use crate::state::Thread;
-use crate::utils::check_account_key;
 use crate::utils::order_keys;
+use crate::utils::{check_account_key, check_account_owner};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -52,10 +52,18 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             fee_payer: next_account_info(accounts_iter)?,
         };
 
+        // Check keys
         check_account_key(
             accounts.system_program,
             &system_program::ID,
             JabberError::WrongSystemProgramAccount,
+        )?;
+
+        // Check ownership
+        check_account_owner(
+            accounts.thread,
+            &system_program::ID,
+            JabberError::WrongOwner,
         )?;
 
         Ok(accounts)
@@ -86,6 +94,7 @@ pub(crate) fn process(
     let thread = Thread::new(key_1, key_2, bump, current_time);
 
     let lamports = Rent::get()?.minimum_balance(thread.borsh_len());
+
     let allocate_account = create_account(
         accounts.fee_payer.key,
         &thread_key,

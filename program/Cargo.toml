@@ -11,7 +11,7 @@ test-bpf = []
 
 [dependencies]
 num-derive = "0.3.3"
-solana-program = "1.9.2"
+solana-program = "1.9.6"
 num-traits = "0.2"
 thiserror = "1.0.24"
 borsh = "0.9.1"
@@ -20,10 +20,10 @@ spl-token = {version = "3.1.0", features = ["no-entrypoint"]}
 spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
 
 [dev-dependencies]
-solana-sdk = "1.7.10"
-solana-client = "1.7.10"
+solana-sdk = "1.9.7"
+solana-client = "1.9.7"
 rand = "0.8.3"
-solana-program-test = "1.7.10"
+solana-program-test = "1.9.7"
 tokio = {version="1.10.0", features = ["macros"]}
 futures = "0.3.15"
 futures-util = "0.3.15"

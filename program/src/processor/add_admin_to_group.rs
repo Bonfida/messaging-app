@@ -53,11 +53,10 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
         let group_thread = GroupThread::from_account_info(accounts.group_thread)?;
 
-        let expected_group_thread_key = GroupThread::create_key(
+        let (expected_group_thread_key, _) = GroupThread::find_key(
             group_thread.group_name,
-            group_thread.owner,
+            *accounts.group_owner.key,
             program_id,
-            group_thread.bump,
         );
 
         check_account_key(

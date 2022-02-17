@@ -1,5 +1,5 @@
 use solana_program::{
-    account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError,
+    account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError, pubkey,
     pubkey::Pubkey, rent::Rent, sysvar::Sysvar,
 };
 
@@ -10,7 +10,7 @@ use crate::state::{
 };
 use std::cmp::Ordering::Less;
 
-pub const SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi";
+pub const SOL_VAULT: Pubkey = pubkey!("GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi");
 pub const FEE: u64 = 1;
 
 // Safety verification functions

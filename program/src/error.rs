@@ -48,6 +48,8 @@ pub enum JabberError {
     WrongTipReceiver,
     #[error("Receiver does not allow direct messages")]
     DmClosed,
+    #[error("Wrong account owner")]
+    WrongOwner,
 }
 impl From<JabberError> for ProgramError {
     fn from(e: JabberError) -> Self {
