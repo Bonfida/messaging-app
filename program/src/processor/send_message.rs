@@ -1,10 +1,7 @@
 //! Send a message (DM)
 use crate::{
     state::MessageType,
-    utils::{
-        check_account_key, check_account_owner, check_rent_exempt, check_signer, order_keys, FEE,
-        SOL_VAULT,
-    },
+    utils::{check_account_key, check_account_owner, check_signer, order_keys, FEE, SOL_VAULT},
 };
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -146,7 +143,6 @@ pub(crate) fn process(
         &message_key,
         JabberError::AccountNotDeterministic,
     )?;
-    check_rent_exempt(accounts.thread)?;
 
     let now = Clock::get()?.unix_timestamp;
     let message = Message::new(kind, now, message, *accounts.sender.key, replies_to);
@@ -197,8 +193,16 @@ pub(crate) fn process(
             return Err(JabberError::DmClosed.into());
         }
 
-        let transfer_fee = (profile.lamports_per_message * FEE) / 100;
-        let transfer_amount = profile.lamports_per_message - transfer_fee;
+        let transfer_fee = profile
+            .lamports_per_message
+            .checked_mul(FEE)
+            .unwrap()
+            .checked_div(100)
+            .unwrap();
+        let transfer_amount = profile
+            .lamports_per_message
+            .checked_sub(transfer_fee)
+            .unwrap();
 
         let transfer_amount_instruction =
             transfer(accounts.sender.key, accounts.receiver.key, transfer_amount);

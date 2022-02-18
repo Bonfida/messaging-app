@@ -1,6 +1,6 @@
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError, pubkey,
-    pubkey::Pubkey, rent::Rent, sysvar::Sysvar,
+    pubkey::Pubkey,
 };
 
 use crate::error::JabberError;
@@ -39,14 +39,6 @@ pub fn check_account_owner(
 pub fn check_signer(account: &AccountInfo) -> ProgramResult {
     if !(account.is_signer) {
         return Err(ProgramError::MissingRequiredSignature);
-    }
-    Ok(())
-}
-
-pub fn check_rent_exempt(account: &AccountInfo) -> ProgramResult {
-    let rent = Rent::get()?;
-    if !rent.is_exempt(account.lamports(), account.data_len()) {
-        return Err(JabberError::AccountNotRentExempt.into());
     }
     Ok(())
 }

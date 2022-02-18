@@ -3,7 +3,7 @@ use crate::{
     state::MessageType,
     utils::{
         check_account_key, check_account_owner, check_admin_only, check_group_message_type,
-        check_rent_exempt, check_signer, FEE, SOL_VAULT,
+        check_signer, FEE, SOL_VAULT,
     },
 };
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -123,8 +123,6 @@ pub(crate) fn process(
 
     let mut group_thread = GroupThread::from_account_info(accounts.group_thread)?;
     let (group_thread_key, _) = GroupThread::find_key(group_name, group_thread.owner, program_id);
-
-    check_rent_exempt(accounts.group_thread)?;
 
     check_admin_only(&group_thread, accounts.sender.key, admin_index)?;
 
