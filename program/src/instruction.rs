@@ -9,7 +9,7 @@ use solana_program::{instruction::Instruction, pubkey::Pubkey};
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum JabberInstruction {
     /// Create a user Jabber profile
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -18,7 +18,7 @@ pub enum JabberInstruction {
     /// | 3     | ✅        | ✅      | The fee payer account      |
     CreateProfile,
     /// Create a DM thread between two users
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -26,14 +26,14 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateThread,
     /// Edit a Jabber profile information
-    ///
+    /// 
     /// | Index | Writable | Signer | Description               |
     /// | ----------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The profile owner account |
     /// | 1     | ✅        | ❌      | The profile account       |
     SetUserProfile,
     /// Send a message (DM)
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                  |
     /// | -------------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The system program account   |
@@ -45,7 +45,7 @@ pub enum JabberInstruction {
     /// | 6     | ✅        | ❌      | The SOL vault account        |
     SendMessage,
     /// Create a group thread
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -53,14 +53,14 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ✅      | The fee payer account      |
     CreateGroupThread,
     /// Edit a group thread information
-    ///
+    /// 
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The group owner account  |
     /// | 1     | ✅        | ❌      | The group thread account |
     EditGroupThread,
     /// Send a message to a group
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The system program account |
@@ -71,21 +71,21 @@ pub enum JabberInstruction {
     /// | 5     | ✅        | ❌      | The SOL vault account      |
     SendMessageGroup,
     /// Add an admin to the group
-    ///
+    /// 
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The group thread account |
     /// | 1     | ✅        | ✅      | The group owner account  |
     AddAdminToGroup,
     /// Remove an admin from the group
-    ///
+    /// 
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The group thread account |
     /// | 1     | ✅        | ✅      | The group owner account  |
     RemoveAdminFromGroup,
     /// Create a group index for a user
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                    |
     /// | ---------------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The system program account     |
@@ -93,7 +93,7 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ✅      | The fee payer account          |
     CreateGroupIndex,
     /// Delete a message (DM)
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                  |
     /// | -------------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The message sender account   |
@@ -101,7 +101,7 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ❌      | The message account          |
     DeleteMessage,
     /// Delete a message sent to a group
-    ///
+    /// 
     /// | Index | Writable | Signer | Description              |
     /// | ---------------------------------------------------- |
     /// | 0     | ❌        | ❌      | The group thread account |
@@ -109,7 +109,7 @@ pub enum JabberInstruction {
     /// | 2     | ✅        | ✅      | The fee payer account    |
     DeleteGroupMessage,
     /// Send a tip
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                      |
     /// | ------------------------------------------------------------ |
     /// | 0     | ❌        | ❌      | The SPL token program ID         |
@@ -121,7 +121,7 @@ pub enum JabberInstruction {
     /// | 6     | ✅        | ❌      | The token destination account    |
     SendTip,
     /// Create a subscription
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The subscription account             |

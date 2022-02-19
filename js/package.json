@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "tsc && node dist/test.js",
     "build": "tsc",
+    "prebuild": "rm -rf dist",
     "prepublish": "tsc",
     "lint": "yarn pretty && eslint .",
     "lint:fix": "yarn pretty:fix && eslint . --fix",
