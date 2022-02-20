@@ -24,10 +24,14 @@ export enum MessageType {
 
 export class Profile {
   tag: Tag;
-  name: string;
-  bio: string;
-  lamportsPerMessage: BN;
   bump: number;
+  pictureHash: String;
+  displayDomainName: String;
+  bio: String;
+  lamportsPerMessage: BN;
+  allowDm: boolean;
+  tipsSent: number;
+  tipsReceived: number;
 
   static schema: Schema = new Map([
     [
@@ -36,26 +40,39 @@ export class Profile {
         kind: "struct",
         fields: [
           ["tag", "u8"],
-          ["name", "string"],
+          ["bump", "u8"],
+          ["pictureHash", "string"],
+          ["displayDomainName", "string"],
           ["bio", "string"],
           ["lamportsPerMessage", "u64"],
-          ["bump", "u8"],
+          ["allowDm", "u8"],
+          ["tipsSent", "u64"],
+          ["tipsReceived", "u64"],
         ],
       },
     ],
   ]);
 
   constructor(obj: {
-    name: string;
-    bio: string;
-    lamportsPerMessage: BN;
+    tag: Tag;
     bump: number;
+    pictureHash: String;
+    displayDomainName: String;
+    bio: String;
+    lamportsPerMessage: BN;
+    allowDm: boolean;
+    tipsSent: number;
+    tipsReceived: number;
   }) {
     this.tag = Tag.Profile;
-    this.name = obj.name;
+    this.bump = obj.bump;
+    this.pictureHash = obj.pictureHash;
+    this.displayDomainName = obj.displayDomainName;
     this.bio = obj.bio;
     this.lamportsPerMessage = obj.lamportsPerMessage;
-    this.bump = obj.bump;
+    this.allowDm = obj.allowDm;
+    this.tipsSent = obj.tipsSent;
+    this.tipsReceived = obj.tipsReceived;
   }
 
   static deserialize(data: Buffer) {
@@ -87,6 +104,7 @@ export class Thread {
   msgCount: number;
   user1: PublicKey;
   user2: PublicKey;
+  lastMessageTime: BN;
   bump: number;
 
   static schema: Schema = new Map([
@@ -99,6 +117,7 @@ export class Thread {
           ["msgCount", "u32"],
           ["user1", [32]],
           ["user2", [32]],
+          ["lastMessageTime", "u64"],
           ["bump", "u8"],
         ],
       },
@@ -109,12 +128,14 @@ export class Thread {
     msgCount: number;
     user1: Uint8Array;
     user2: Uint8Array;
+    lastMessageTime: BN;
     bump: number;
   }) {
     this.tag = Tag.Thread;
     this.msgCount = obj.msgCount;
     this.user1 = new PublicKey(obj.user1);
     this.user2 = new PublicKey(obj.user2);
+    this.lastMessageTime = obj.lastMessageTime;
     this.bump = obj.bump;
   }
 
@@ -168,8 +189,11 @@ export class Message {
   tag: Tag;
   kind: MessageType;
   timestamp: BN;
-  msg: Uint8Array;
   sender: PublicKey;
+  repliesTo: PublicKey;
+  likesCount: number;
+  dislikesCount: number;
+  msg: Uint8Array;
 
   static schema: Schema = new Map([
     [
@@ -180,24 +204,34 @@ export class Message {
           ["tag", "u8"],
           ["kind", "u8"],
           ["timestamp", "u64"],
-          ["msg", ["u8"]],
           ["sender", [32]],
+          ["repliesTo", [32]],
+          ["likesCount", "u16"],
+          ["dislikesCount", "u16"],
+          ["msg", ["u8"]],
         ],
       },
     ],
   ]);
 
   constructor(obj: {
+    tag: Tag;
     kind: MessageType;
     timestamp: BN;
-    msg: Uint8Array;
     sender: Uint8Array;
+    repliesTo: Uint8Array;
+    likesCount: number;
+    dislikesCount: number;
+    msg: Uint8Array;
   }) {
     this.tag = Tag.Message;
     this.kind = obj.kind;
     this.timestamp = obj.timestamp;
-    this.msg = obj.msg;
     this.sender = new PublicKey(obj.sender);
+    this.repliesTo = new PublicKey(obj.repliesTo);
+    this.likesCount = obj.likesCount;
+    this.dislikesCount = obj.dislikesCount;
+    this.msg = obj.msg;
   }
 
   static deserialize(data: Buffer) {
@@ -262,14 +296,18 @@ export class Message {
 
 export class GroupThread {
   tag: Tag;
-  groupName: string;
-  msgCount: number;
-  destinationWallet: PublicKey;
-  lamportsPerMessage: BN;
   bump: number;
-  admins: PublicKey[];
+  visible: boolean;
   owner: PublicKey;
+  lastMessageTime: BN;
+  destinationWallet: PublicKey;
+  msgCount: number;
+  lamportsPerMessage: BN;
   mediaEnabled: boolean;
+  adminOnly: boolean;
+  groupPicHash: String;
+  groupName: string;
+  admins: PublicKey[];
 
   static schema: Schema = new Map([
     [
@@ -278,14 +316,16 @@ export class GroupThread {
         kind: "struct",
         fields: [
           ["tag", "u8"],
+          ["bump", "u8"],
+          ["visible", "u8"],
           ["owner", [32]],
+          ["lastMessageTime", "u64"],
           ["destinationWallet", [32]],
           ["msgCount", "u32"],
           ["lamportsPerMessage", "u64"],
-          ["bump", "u8"],
           ["mediaEnabled", "u8"],
           ["adminOnly", "u8"],
-          ["groupPicHash", { kind: "option", type: "string" }],
+          ["groupPicHash", "string"],
           ["groupName", "string"],
           ["admins", [[32]]],
         ],
@@ -294,24 +334,33 @@ export class GroupThread {
   ]);
 
   constructor(obj: {
-    groupName: string;
-    msgCount: number;
-    destinationWallet: Uint8Array;
-    lamportsPerMessage: BN;
+    tag: Tag;
     bump: number;
-    admins: Uint8Array[];
-    owner: Uint8Array;
-    mediaEnabled: number;
+    visible: boolean;
+    owner: PublicKey;
+    lastMessageTime: BN;
+    destinationWallet: PublicKey;
+    msgCount: number;
+    lamportsPerMessage: BN;
+    mediaEnabled: boolean;
+    adminOnly: boolean;
+    groupPicHash: String;
+    groupName: string;
+    admins: PublicKey[];
   }) {
     this.tag = Tag.GroupThread;
-    this.groupName = obj.groupName;
-    this.msgCount = obj.msgCount;
-    this.destinationWallet = new PublicKey(obj.destinationWallet);
-    this.lamportsPerMessage = obj.lamportsPerMessage;
     this.bump = obj.bump;
-    this.admins = obj.admins.map((e) => new PublicKey(e));
+    this.visible = obj.visible;
     this.owner = new PublicKey(obj.owner);
+    this.lastMessageTime = obj.lastMessageTime;
+    this.destinationWallet = new PublicKey(obj.destinationWallet);
+    this.msgCount = obj.msgCount;
+    this.lamportsPerMessage = obj.lamportsPerMessage;
     this.mediaEnabled = !!obj.mediaEnabled;
+    this.adminOnly = !!obj.adminOnly;
+    this.groupPicHash = obj.groupPicHash;
+    this.groupName = obj.groupName;
+    this.admins = obj.admins.map((e) => new PublicKey(e));
   }
 
   static deserialize(data: Buffer) {
@@ -363,9 +412,9 @@ export class GroupThread {
 
 export class GroupThreadIndex {
   tag: number;
-  groupName: string;
   groupThreadKey: Uint8Array;
   owner: Uint8Array;
+  groupName: string;
 
   static schema: Schema = new Map([
     [
