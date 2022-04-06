@@ -1,5 +1,5 @@
 //! Create a group thread
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{GroupThread, MAX_GROUP_THREAD_LEN};
 use crate::utils::{check_account_key, check_account_owner, check_group_thread_params};
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -61,14 +61,14 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
 
         // Check ownership
         check_account_owner(
             accounts.group_thread,
             &system_program::ID,
-            JabberError::WrongOwner,
+            JabError::WrongOwner,
         )?;
 
         Ok(accounts)
@@ -99,7 +99,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.group_thread,
         &group_thread_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let lamports = Rent::get()?.minimum_balance(MAX_GROUP_THREAD_LEN);

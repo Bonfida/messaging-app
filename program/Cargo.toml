@@ -1,6 +1,6 @@
 
 [package]
-name = "jabber"
+name = "jab"
 version = "0.0.1"
 authors = ["contact@bonfida.com"]
 edition = "2018"

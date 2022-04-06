@@ -30,7 +30,7 @@ import {
   Subscription,
 } from "./state";
 
-export const JABBER_ID = new PublicKey(
+export const JAB_ID = new PublicKey(
   "2iKLjPgcL3cwEGwJeXj3bEbYFkWEPQ4UqpueL1iSXZZ9"
 );
 export const SOL_VAULT = new PublicKey(
@@ -55,7 +55,7 @@ export const createProfile = async (
 ) => {
   const [profile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(profileOwner),
-    JABBER_ID
+    JAB_ID
   );
   const instruction = new createProfileInstruction({
     displayDomainName,
@@ -63,7 +63,7 @@ export const createProfile = async (
     pictureHash,
     lamportsPerMessage: new BN(lamportsPerMessage),
   }).getInstruction(
-    JABBER_ID,
+    JAB_ID,
     SystemProgram.programId,
     profile,
     profileOwner,
@@ -87,13 +87,13 @@ export const createThread = async (
 ) => {
   const [thread] = await PublicKey.findProgramAddress(
     Thread.generateSeeds(sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new createThreadInstruction({
     senderKey: sender.toBuffer(),
     receiverKey: receiver.toBuffer(),
-  }).getInstruction(JABBER_ID, SystemProgram.programId, thread, feePayer);
+  }).getInstruction(JAB_ID, SystemProgram.programId, thread, feePayer);
 
   return instruction;
 };
@@ -118,7 +118,7 @@ export const setUserProfile = async (
 ) => {
   const [profile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(profileOwner),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new setUserProfileInstruction({
@@ -127,7 +127,7 @@ export const setUserProfile = async (
     bio,
     lamportsPerMessage: new BN(lamportsPerMessage),
     allowDm: allowDm ? 1 : 0,
-  }).getInstruction(JABBER_ID, profileOwner, profile);
+  }).getInstruction(JAB_ID, profileOwner, profile);
 
   return instruction;
 };
@@ -152,18 +152,18 @@ export const sendMessage = async (
 ) => {
   const [receiverProfile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(receiver),
-    JABBER_ID
+    JAB_ID
   );
   const [threadAccount] = await PublicKey.findProgramAddress(
     Thread.generateSeeds(sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const thread = await Thread.retrieve(connection, sender, receiver);
 
   const [messageAccount] = await PublicKey.findProgramAddress(
     Message.generateSeeds(thread.msgCount, sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new sendMessageInstruction({
@@ -171,7 +171,7 @@ export const sendMessage = async (
     message: Array.from(message),
     repliesTo: repliesTo.toBuffer(),
   }).getInstruction(
-    JABBER_ID,
+    JAB_ID,
     SystemProgram.programId,
     sender,
     receiver,
@@ -210,10 +210,10 @@ export const retrieveUserThread = async (
       },
     },
   ];
-  const result_1 = await connection.getProgramAccounts(JABBER_ID, {
+  const result_1 = await connection.getProgramAccounts(JAB_ID, {
     filters: filters_1,
   });
-  const result_2 = await connection.getProgramAccounts(JABBER_ID, {
+  const result_2 = await connection.getProgramAccounts(JAB_ID, {
     filters: filters_2,
   });
   return result_1.concat(result_2);
@@ -253,7 +253,7 @@ export const createGroupThread = async (
     mediaEnabled: mediaEnabled ? 1 : 0,
     adminOnly: adminOnly ? 1 : 0,
     visible: visible ? 1 : 0,
-  }).getInstruction(JABBER_ID, SystemProgram.programId, groupThread, feePayer);
+  }).getInstruction(JAB_ID, SystemProgram.programId, groupThread, feePayer);
 
   return instruction;
 };
@@ -287,7 +287,7 @@ export const editGroupThread = async (
     adminOnly: adminOnly ? 1 : 0,
     groupPicHash,
     visible: visible ? 1 : 0,
-  }).getInstruction(JABBER_ID, owner, groupThread);
+  }).getInstruction(JAB_ID, owner, groupThread);
 
   return instruction;
 };
@@ -306,7 +306,7 @@ export const addAdminToGroup = (
 ) => {
   const instruction = new addAdminToGroupInstruction({
     adminAddress: adminToAdd.toBuffer(),
-  }).getInstruction(JABBER_ID, groupKey, groupOwner);
+  }).getInstruction(JAB_ID, groupKey, groupOwner);
 
   return instruction;
 };
@@ -328,7 +328,7 @@ export const removeAdminFromGroup = (
   const instruction = new removeAdminFromGroupInstruction({
     adminAddress: adminToRemove.toBuffer(),
     adminIndex: new BN(adminIndex),
-  }).getInstruction(JABBER_ID, groupKey, groupOwner);
+  }).getInstruction(JAB_ID, groupKey, groupOwner);
 
   return instruction;
 };
@@ -347,7 +347,7 @@ export const createGroupIndex = async (
     groupName,
     groupThreadKey: groupThread.toBuffer(),
     owner: owner.toBuffer(),
-  }).getInstruction(JABBER_ID, SystemProgram.programId, groupIndex, owner);
+  }).getInstruction(JAB_ID, SystemProgram.programId, groupIndex, owner);
 
   return instruction;
 };
@@ -381,7 +381,7 @@ export const sendMessageGroup = async (
     adminIndex: adminIndex ? new BN(adminIndex) : undefined,
     repliesTo: repliesTo ? repliesTo.toBuffer() : PublicKey.default.toBuffer(),
   }).getInstruction(
-    JABBER_ID,
+    JAB_ID,
     SystemProgram.programId,
     sender,
     groupThread,
@@ -417,7 +417,7 @@ export const retrieveUserGroups = async (
       },
     },
   ];
-  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  const result = await connection.getProgramAccounts(JAB_ID, { filters });
 
   return result;
 };
@@ -438,7 +438,7 @@ export const deleteMessage = async (
 ) => {
   const instruction = new deleteMessageInstruction({
     messageIndex,
-  }).getInstruction(JABBER_ID, sender, receiver, message);
+  }).getInstruction(JAB_ID, sender, receiver, message);
 
   return instruction;
 };
@@ -468,7 +468,7 @@ export const deleteGroupMessage = async (
     owner: owner.toBuffer(),
     adminIndex: adminIndex ? new BN(adminIndex) : undefined,
     groupName,
-  }).getInstruction(JABBER_ID, groupThread, message, feePayer);
+  }).getInstruction(JAB_ID, groupThread, message, feePayer);
 
   return instruction;
 };
@@ -486,12 +486,7 @@ export const createSubscription = async (
   const subscription = await Subscription.getKey(subscriber, subscribedTo);
   const ix = new createSubscriptionInstruction({
     subscribedTo: subscribedTo.toBuffer(),
-  }).getInstruction(
-    JABBER_ID,
-    subscription,
-    subscriber,
-    SystemProgram.programId
-  );
+  }).getInstruction(JAB_ID, subscription, subscriber, SystemProgram.programId);
   return ix;
 };
 
@@ -513,7 +508,7 @@ export const retrieveGroupMembers = async (
       },
     },
   ];
-  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  const result = await connection.getProgramAccounts(JAB_ID, { filters });
 
   return result.map(
     (acc) => GroupThreadIndex.deserialize(acc.account.data).owner
@@ -538,6 +533,6 @@ export const retrieveUserSubscription = async (
       },
     },
   ];
-  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  const result = await connection.getProgramAccounts(JAB_ID, { filters });
   return result.map((acc) => Subscription.deserialize(acc.account.data));
 };

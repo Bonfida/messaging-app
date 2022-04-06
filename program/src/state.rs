@@ -1,4 +1,4 @@
-use crate::{error::JabberError, utils::order_keys};
+use crate::{error::JabError, utils::order_keys};
 use bonfida_utils::BorshSize;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -37,7 +37,7 @@ pub enum Tag {
     Profile,
     Thread,
     Message,
-    Jabber,
+    Jab,
     GroupThread,
     GroupThreadIndex,
     Subscription,
@@ -99,7 +99,7 @@ impl Profile {
     pub fn from_account_info(a: &AccountInfo) -> Result<Profile, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::Profile as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = Profile::deserialize(&mut data)?;
         Ok(result)
@@ -161,7 +161,7 @@ impl Thread {
     pub fn from_account_info(a: &AccountInfo) -> Result<Thread, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::Thread as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = Thread::deserialize(&mut data)?;
         Ok(result)
@@ -269,7 +269,7 @@ impl Message {
     pub fn from_account_info(a: &AccountInfo) -> Result<Message, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::Message as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = Message::deserialize(&mut data)?;
         Ok(result)
@@ -370,7 +370,7 @@ impl GroupThread {
     pub fn from_account_info(a: &AccountInfo) -> Result<GroupThread, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::GroupThread as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = GroupThread::deserialize(&mut data)?;
         Ok(result)
@@ -388,7 +388,7 @@ impl GroupThread {
 
     pub fn add_admin(&mut self, admin_address: Pubkey) -> ProgramResult {
         if self.admins.len() > MAX_ADMIN_LEN {
-            return Err(JabberError::MaxAdminsReached.into());
+            return Err(JabError::MaxAdminsReached.into());
         }
         self.admins.push(admin_address);
         Ok(())
@@ -397,7 +397,7 @@ impl GroupThread {
     pub fn remove_admin(&mut self, admin_address: Pubkey, admin_index: usize) -> ProgramResult {
         let deleted = self.admins.remove(admin_index);
         if admin_address != deleted {
-            return Err(JabberError::InvalidAdminIndex.into());
+            return Err(JabError::InvalidAdminIndex.into());
         }
         Ok(())
     }
@@ -467,7 +467,7 @@ impl GroupThreadIndex {
     pub fn from_account_info(a: &AccountInfo) -> Result<GroupThreadIndex, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::GroupThreadIndex as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = GroupThreadIndex::deserialize(&mut data)?;
         Ok(result)
@@ -527,7 +527,7 @@ impl Subscription {
     pub fn from_account_info(a: &AccountInfo) -> Result<Subscription, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != Tag::Subscription as u8 && data[0] != Tag::Uninitialized as u8 {
-            return Err(JabberError::DataTypeMismatch.into());
+            return Err(JabError::DataTypeMismatch.into());
         }
         let result = Subscription::deserialize(&mut data)?;
         Ok(result)

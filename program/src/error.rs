@@ -3,7 +3,7 @@ use solana_program::{decode_error::DecodeError, program_error::ProgramError};
 use thiserror::Error;
 
 #[derive(Error, Debug, Clone, FromPrimitive)]
-pub enum JabberError {
+pub enum JabError {
     #[error("Account not generated deterministically")]
     AccountNotDeterministic = 0,
     #[error("Account not Authorized")]
@@ -51,13 +51,13 @@ pub enum JabberError {
     #[error("Wrong account owner")]
     WrongOwner,
 }
-impl From<JabberError> for ProgramError {
-    fn from(e: JabberError) -> Self {
+impl From<JabError> for ProgramError {
+    fn from(e: JabError) -> Self {
         ProgramError::Custom(e as u32)
     }
 }
-impl<T> DecodeError<T> for JabberError {
+impl<T> DecodeError<T> for JabError {
     fn type_of() -> &'static str {
-        "Jabber Error"
+        "Jab Error"
     }
 }

@@ -11,7 +11,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{Message, MessageType};
 
 use bonfida_utils::{BorshSize, InstructionsAccount};
@@ -56,9 +56,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_owner(
             accounts.group_thread,
             program_id,
-            JabberError::WrongGroupThreadOwner,
+            JabError::WrongGroupThreadOwner,
         )?;
-        check_account_owner(accounts.message, program_id, JabberError::WrongMessageOwner)?;
+        check_account_owner(accounts.message, program_id, JabError::WrongMessageOwner)?;
 
         // Check signer
         check_signer(accounts.fee_payer)?;
@@ -93,12 +93,12 @@ pub(crate) fn process(
     check_account_key(
         accounts.group_thread,
         &expected_group_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
     check_account_key(
         accounts.message,
         &expected_message_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     // The message can be deleted by:
@@ -116,7 +116,7 @@ pub(crate) fn process(
     }
 
     if !(is_admin || is_sender || is_owner) {
-        return Err(JabberError::AccountNotAuthorized.into());
+        return Err(JabError::AccountNotAuthorized.into());
     }
 
     message.kind = MessageType::Deleted;

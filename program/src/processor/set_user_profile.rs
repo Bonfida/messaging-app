@@ -1,5 +1,5 @@
-//! Edit a Jabber profile information
-use crate::error::JabberError;
+//! Edit a Jab profile information
+use crate::error::JabError;
 use crate::state::Profile;
 use crate::utils::{check_account_key, check_account_owner, check_profile_params, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -46,7 +46,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         // Check keys
 
         // Check ownership
-        check_account_owner(accounts.profile, program_id, JabberError::WrongProfileOwner)?;
+        check_account_owner(accounts.profile, program_id, JabError::WrongProfileOwner)?;
 
         // Check signer
         check_signer(accounts.profile_owner)?;
@@ -75,7 +75,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.profile,
         &expected_user_profile_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     check_profile_params(&picture_hash, &display_domain_name, &bio)?;

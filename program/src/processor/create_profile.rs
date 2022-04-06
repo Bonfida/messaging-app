@@ -1,4 +1,4 @@
-//! Create a user Jabber profile
+//! Create a user Jab profile
 use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -13,7 +13,7 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{Profile, MAX_PROFILE_LEN};
 use crate::utils::check_profile_params;
 
@@ -63,15 +63,11 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
 
         // Check ownership
-        check_account_owner(
-            accounts.profile,
-            &system_program::ID,
-            JabberError::WrongOwner,
-        )?;
+        check_account_owner(accounts.profile, &system_program::ID, JabError::WrongOwner)?;
 
         // Check signer
         check_signer(accounts.profile_owner)?;
@@ -101,7 +97,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.profile,
         &profile_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let lamports = Rent::get()?.minimum_balance(MAX_PROFILE_LEN);

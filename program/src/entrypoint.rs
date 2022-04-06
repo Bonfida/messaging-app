@@ -1,4 +1,4 @@
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::processor::Processor;
 use num_traits::FromPrimitive;
 use solana_program::{
@@ -11,7 +11,7 @@ use solana_program::entrypoint;
 #[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
 
-/// The entrypoint to the Jabber program
+/// The entrypoint to the Jab program
 pub fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
@@ -20,81 +20,81 @@ pub fn process_instruction(
     msg!("Entrypoint");
     if let Err(error) = Processor::process_instruction(program_id, accounts, instruction_data) {
         // catch the error so we can print it
-        error.print::<JabberError>();
+        error.print::<JabError>();
         return Err(error);
     }
     Ok(())
 }
 
-impl PrintProgramError for JabberError {
+impl PrintProgramError for JabError {
     fn print<E>(&self)
     where
         E: 'static + std::error::Error + DecodeError<E> + PrintProgramError + FromPrimitive,
     {
         match self {
-            JabberError::AccountNotDeterministic => {
+            JabError::AccountNotDeterministic => {
                 msg!("Error: Account not generated deterministically")
             }
-            JabberError::AccountNotAuthorized => msg!("Error: Account not rent exempt"),
-            JabberError::AccountNotRentExempt => msg!("Error: Account not rent exempt"),
-            JabberError::ChatThreadExists => {
+            JabError::AccountNotAuthorized => msg!("Error: Account not rent exempt"),
+            JabError::AccountNotRentExempt => msg!("Error: Account not rent exempt"),
+            JabError::ChatThreadExists => {
                 msg!("Error: Chat thread exists")
             }
-            JabberError::WrongProfileOwner => {
+            JabError::WrongProfileOwner => {
                 msg!("Error: User profile must be owned by the program")
             }
-            JabberError::DataTypeMismatch => {
+            JabError::DataTypeMismatch => {
                 msg!("Error: Data type mismatch")
             }
-            JabberError::WrongThreadAccountOwner => {
+            JabError::WrongThreadAccountOwner => {
                 msg!("Error: Thread account must be owned by the program")
             }
-            JabberError::WrongSystemProgramAccount => {
+            JabError::WrongSystemProgramAccount => {
                 msg!("Error: The system program account is invalid")
             }
-            JabberError::WrongMessageAccount => {
+            JabError::WrongMessageAccount => {
                 msg!("Error: The message account is invalid")
             }
-            JabberError::WrongSolVaultAccount => {
+            JabError::WrongSolVaultAccount => {
                 msg!("Error: Wrong SOL vault account")
             }
-            JabberError::MaxAdminsReached => {
+            JabError::MaxAdminsReached => {
                 msg!("Error: Maximum number of admins reached")
             }
-            JabberError::InvalidAdminIndex => {
+            JabError::InvalidAdminIndex => {
                 msg!("Error: Invalid admin index")
             }
-            JabberError::WrongGroupOwner => {
+            JabError::WrongGroupOwner => {
                 msg!("Error: Wrong group owner")
             }
-            JabberError::WrongGroupThreadOwner => {
+            JabError::WrongGroupThreadOwner => {
                 msg!("Error: Group thread must be owned by the program")
             }
-            JabberError::NonSupportedMessageType => {
+            JabError::NonSupportedMessageType => {
                 msg!("Error: Non supported message type")
             }
-            JabberError::WrongDestinationWallet => {
+            JabError::WrongDestinationWallet => {
                 msg!("Error: Wrong destination wallet")
             }
-            JabberError::InvalidHashLength => {
+            JabError::InvalidHashLength => {
                 msg!("Error: Invalid hash length")
             }
-            JabberError::WrongMessageOwner => {
+            JabError::WrongMessageOwner => {
                 msg!("Error: Wrong message owner")
             }
-            JabberError::ChatMuted => {
+            JabError::ChatMuted => {
                 msg!("Error: Chat is muted")
             }
-            JabberError::WrongSplId => {
+            JabError::WrongSplId => {
                 msg!("Error: Wrong SPL token program ID")
             }
-            JabberError::WrongTipReceiver => {
+            JabError::WrongTipReceiver => {
                 msg!("Error: Wrong tip receiver")
             }
-            JabberError::DmClosed => {
+            JabError::DmClosed => {
                 msg!("Error: Receiver does not allow direct messages")
             }
-            JabberError::WrongOwner => {
+            JabError::WrongOwner => {
                 msg!("Error: Wrong account owner")
             }
         }

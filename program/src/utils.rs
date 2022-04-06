@@ -3,7 +3,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{
     GroupThread, MessageType, MAX_ADMIN_LEN, MAX_BIO_LENGTH, MAX_GROUP_NAME_LEN, MAX_HASH_LEN,
     MAX_NAME_LENGTH,
@@ -17,8 +17,8 @@ pub const FEE: u64 = 1;
 pub fn check_account_key(
     account: &AccountInfo,
     key: &Pubkey,
-    error: JabberError,
-) -> Result<(), JabberError> {
+    error: JabError,
+) -> Result<(), JabError> {
     if account.key != key {
         return Err(error);
     }
@@ -28,8 +28,8 @@ pub fn check_account_key(
 pub fn check_account_owner(
     account: &AccountInfo,
     owner: &Pubkey,
-    error: JabberError,
-) -> Result<(), JabberError> {
+    error: JabError,
+) -> Result<(), JabError> {
     if account.owner != owner {
         return Err(error);
     }
@@ -89,8 +89,8 @@ pub fn check_group_message_type(
     message_type: &MessageType,
 ) -> ProgramResult {
     match (group_thread.media_enabled, message_type) {
-        (false, MessageType::EncryptedMedia) => Err(JabberError::NonSupportedMessageType.into()),
-        (false, MessageType::UnencryptedMedia) => Err(JabberError::NonSupportedMessageType.into()),
+        (false, MessageType::EncryptedMedia) => Err(JabError::NonSupportedMessageType.into()),
+        (false, MessageType::UnencryptedMedia) => Err(JabError::NonSupportedMessageType.into()),
         _ => Ok(()),
     }
 }
@@ -106,14 +106,14 @@ pub fn check_admin_only(
     let admin_index = admin_index.unwrap() as usize;
     let is_admin = group_thread.admins.get(admin_index).unwrap() == address;
     if !is_admin {
-        return Err(JabberError::ChatMuted.into());
+        return Err(JabError::ChatMuted.into());
     }
     Ok(())
 }
 
 pub fn check_hash_len(hash: &str) -> ProgramResult {
     if hash.len() > MAX_HASH_LEN {
-        return Err(JabberError::InvalidHashLength.into());
+        return Err(JabError::InvalidHashLength.into());
     }
     Ok(())
 }

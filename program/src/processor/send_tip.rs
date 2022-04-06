@@ -10,7 +10,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::Profile;
 use spl_token::{instruction::transfer, state::Account};
 
@@ -70,24 +70,24 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.spl_token_program,
             &spl_token::ID,
-            JabberError::WrongSplId,
+            JabError::WrongSplId,
         )?;
 
         // Check ownership
         check_account_owner(
             accounts.sender_profile,
             program_id,
-            JabberError::WrongProfileOwner,
+            JabError::WrongProfileOwner,
         )?;
         check_account_owner(
             accounts.receiver_profile,
             program_id,
-            JabberError::WrongProfileOwner,
+            JabError::WrongProfileOwner,
         )?;
         check_account_owner(
             accounts.token_destination,
             &spl_token::ID,
-            JabberError::WrongOwner,
+            JabError::WrongOwner,
         )?;
 
         // Check signer
@@ -114,17 +114,17 @@ pub(crate) fn process(
     check_account_key(
         accounts.receiver,
         &destination_token_account.owner,
-        JabberError::WrongTipReceiver,
+        JabError::WrongTipReceiver,
     )?;
     check_account_key(
         accounts.sender_profile,
         &sender_profile_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
     check_account_key(
         accounts.receiver_profile,
         &receiver_profile_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let mut sender_profile = Profile::from_account_info(accounts.sender_profile)?;

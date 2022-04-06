@@ -1,5 +1,5 @@
 //! Create a DM thread between two users
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::Thread;
 use crate::utils::order_keys;
 use crate::utils::{check_account_key, check_account_owner};
@@ -56,15 +56,11 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
 
         // Check ownership
-        check_account_owner(
-            accounts.thread,
-            &system_program::ID,
-            JabberError::WrongOwner,
-        )?;
+        check_account_owner(accounts.thread, &system_program::ID, JabError::WrongOwner)?;
 
         Ok(accounts)
     }
@@ -86,7 +82,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.thread,
         &thread_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let (key_1, key_2) = order_keys(&receiver_key, &sender_key);

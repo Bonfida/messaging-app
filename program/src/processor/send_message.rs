@@ -17,7 +17,7 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{Message, Profile, Thread};
 
 use bonfida_utils::{BorshSize, InstructionsAccount};
@@ -78,25 +78,21 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
         check_account_key(
             accounts.sol_vault,
             &SOL_VAULT,
-            JabberError::WrongSolVaultAccount,
+            JabError::WrongSolVaultAccount,
         )?;
 
         // Check ownership
         check_account_owner(
             accounts.thread,
             program_id,
-            JabberError::WrongThreadAccountOwner,
+            JabError::WrongThreadAccountOwner,
         )?;
-        check_account_owner(
-            accounts.message,
-            &system_program::ID,
-            JabberError::WrongOwner,
-        )?;
+        check_account_owner(accounts.message, &system_program::ID, JabError::WrongOwner)?;
 
         // Check signer
         check_signer(accounts.sender)?;
@@ -128,7 +124,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.thread,
         &thread_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let (message_key, bump) = Message::find_key(
@@ -141,7 +137,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.message,
         &message_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let now = Clock::get()?.unix_timestamp;
@@ -185,12 +181,12 @@ pub(crate) fn process(
         check_account_owner(
             accounts.receiver_profile,
             program_id,
-            JabberError::WrongProfileOwner,
+            JabError::WrongProfileOwner,
         )?;
         let profile = Profile::from_account_info(accounts.receiver_profile)?;
 
         if !profile.allow_dm {
-            return Err(JabberError::DmClosed.into());
+            return Err(JabError::DmClosed.into());
         }
 
         let transfer_fee = profile

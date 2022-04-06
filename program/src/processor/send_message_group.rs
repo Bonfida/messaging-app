@@ -20,7 +20,7 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::{GroupThread, Message};
 
 use bonfida_utils::{BorshSize, InstructionsAccount};
@@ -79,25 +79,21 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
         check_account_key(
             accounts.sol_vault,
             &SOL_VAULT,
-            JabberError::WrongSolVaultAccount,
+            JabError::WrongSolVaultAccount,
         )?;
 
         // Check ownership
         check_account_owner(
             accounts.group_thread,
             program_id,
-            JabberError::WrongThreadAccountOwner,
+            JabError::WrongThreadAccountOwner,
         )?;
-        check_account_owner(
-            accounts.message,
-            &system_program::ID,
-            JabberError::WrongOwner,
-        )?;
+        check_account_owner(accounts.message, &system_program::ID, JabError::WrongOwner)?;
 
         // Check signer
         check_signer(accounts.sender)?;
@@ -129,13 +125,13 @@ pub(crate) fn process(
     check_account_key(
         accounts.group_thread,
         &group_thread_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     check_account_key(
         accounts.destination_wallet,
         &group_thread.destination_wallet,
-        JabberError::WrongDestinationWallet,
+        JabError::WrongDestinationWallet,
     )?;
 
     check_group_message_type(&group_thread, &kind)?;
@@ -150,7 +146,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.message,
         &message_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let now = Clock::get()?.unix_timestamp;

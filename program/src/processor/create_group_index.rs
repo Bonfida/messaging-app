@@ -1,5 +1,5 @@
 //! Create a group index for a user
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::GroupThreadIndex;
 use crate::utils::{check_account_key, check_account_owner};
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -55,14 +55,14 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(
             accounts.system_program,
             &system_program::ID,
-            JabberError::WrongSystemProgramAccount,
+            JabError::WrongSystemProgramAccount,
         )?;
 
         // Check ownership
         check_account_owner(
             accounts.group_thread_index,
             &system_program::ID,
-            JabberError::WrongOwner,
+            JabError::WrongOwner,
         )?;
 
         Ok(accounts)
@@ -87,7 +87,7 @@ pub(crate) fn process(
     check_account_key(
         accounts.group_thread_index,
         &group_thread_index_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     let group_thread_index = GroupThreadIndex::new(group_name.clone(), group_thread_key, owner);

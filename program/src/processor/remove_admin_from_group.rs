@@ -1,5 +1,5 @@
 //! Remove an admin from the group
-use crate::error::JabberError;
+use crate::error::JabError;
 use crate::state::GroupThread;
 use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -47,7 +47,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_owner(
             accounts.group_thread,
             program_id,
-            JabberError::WrongGroupThreadOwner,
+            JabError::WrongGroupThreadOwner,
         )?;
 
         // Check signer
@@ -79,13 +79,13 @@ pub(crate) fn process(
     check_account_key(
         accounts.group_thread,
         &expected_group_thread_key,
-        JabberError::AccountNotDeterministic,
+        JabError::AccountNotDeterministic,
     )?;
 
     check_account_key(
         accounts.group_owner,
         &group_thread.owner,
-        JabberError::WrongGroupOwner,
+        JabError::WrongGroupOwner,
     )?;
 
     group_thread.remove_admin(admin_address, admin_index as usize)?;
