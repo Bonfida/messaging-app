@@ -7,7 +7,7 @@ import BN from "bn.js";
 import { Schema, serialize } from "borsh";
 import { MessageType } from "./state";
 
-export const JABBER_ID = new PublicKey(
+export const JAB_ID = new PublicKey(
   "FddkMfjFoLdBeTbETr5uZobEkykeW76Nk24hghPPchpw"
 );
 
@@ -82,7 +82,7 @@ export class CreateProfile {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -142,7 +142,7 @@ export class CreateThread {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -199,7 +199,7 @@ export class SetUserProfile {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -289,7 +289,7 @@ export class SendMessage {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -372,7 +372,7 @@ export class CreateGroupThread {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -445,7 +445,7 @@ export class EditGroupThread {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -539,7 +539,7 @@ export class SendMessageGroup {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -590,7 +590,7 @@ export class AddGroupAdmin {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -644,7 +644,7 @@ export class RemoveGroupAdmin {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -711,7 +711,7 @@ export class CreateGroupIndex {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -768,7 +768,7 @@ export class DeleteMessage {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }
@@ -843,7 +843,7 @@ export class DeleteGroupMessage {
 
     return new TransactionInstruction({
       keys,
-      programId: JABBER_ID,
+      programId: JAB_ID,
       data,
     });
   }

@@ -1,6 +1,6 @@
 import {
   CreateProfile,
-  JABBER_ID,
+  JAB_ID,
   CreateThread,
   SetUserProfile,
   SendMessage,
@@ -40,7 +40,7 @@ export const createProfile = async (
 ) => {
   const [profile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(profileOwner),
-    JABBER_ID
+    JAB_ID
   );
   const instruction = new CreateProfile({
     name: name,
@@ -65,7 +65,7 @@ export const createThread = async (
 ) => {
   const [thread] = await PublicKey.findProgramAddress(
     Thread.generateSeeds(sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new CreateThread({
@@ -92,7 +92,7 @@ export const setUserProfile = async (
 ) => {
   const [profile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(profileOwner),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new SetUserProfile({
@@ -122,18 +122,18 @@ export const sendMessage = async (
 ) => {
   const [receiverProfile] = await PublicKey.findProgramAddress(
     Profile.generateSeeds(receiver),
-    JABBER_ID
+    JAB_ID
   );
   const [threadAccount] = await PublicKey.findProgramAddress(
     Thread.generateSeeds(sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const thread = await Thread.retrieve(connection, sender, receiver);
 
   const [messageAccount] = await PublicKey.findProgramAddress(
     Message.generateSeeds(thread.msgCount, sender, receiver),
-    JABBER_ID
+    JAB_ID
   );
 
   const instruction = new SendMessage({
@@ -176,10 +176,10 @@ export const retrieveUserThread = async (
       },
     },
   ];
-  const result_1 = await connection.getProgramAccounts(JABBER_ID, {
+  const result_1 = await connection.getProgramAccounts(JAB_ID, {
     filters: filters_1,
   });
-  const result_2 = await connection.getProgramAccounts(JABBER_ID, {
+  const result_2 = await connection.getProgramAccounts(JAB_ID, {
     filters: filters_2,
   });
   return result_1.concat(result_2);
@@ -368,7 +368,7 @@ export const retrieveUserGroups = async (
       },
     },
   ];
-  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  const result = await connection.getProgramAccounts(JAB_ID, { filters });
 
   return result;
 };
@@ -444,7 +444,7 @@ export const retrieveGroupMembers = async (
       },
     },
   ];
-  const result = await connection.getProgramAccounts(JABBER_ID, { filters });
+  const result = await connection.getProgramAccounts(JAB_ID, { filters });
 
   return result.map(
     (acc) => GroupThreadIndex.deserialize(acc.account.data).owner
